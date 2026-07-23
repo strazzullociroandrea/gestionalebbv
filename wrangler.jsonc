@@ -1,0 +1,35 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "gestionalebbv",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-07-23",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".open-next/assets"
+  },
+  "images": {
+    "binding": "IMAGES"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "gestionalebbv"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "upload_source_maps": true,
+  "d1_databases": [
+    {
+      "binding": "gestionale_bbv",
+      "database_name": "gestionale_bbv",
+      "database_id": "ecd72cdf-4a02-4b5c-badd-0a6d0dec1f75",
+      "remote": true
+    }
+  ]
+}
