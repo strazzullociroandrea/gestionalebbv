@@ -23,12 +23,27 @@ export const Verification = sqliteTable('Verification', {
 });
 export const role = ['admin', 'administrative', 'client'] as const;
 
+export const Account = sqliteTable('Account', {
+    id: text().primaryKey(),
+    accountId: text().notNull(),
+    providerId: text().notNull(),
+    userId: text().references(() => User.id, {onDelete: "cascade"}).notNull(),
+    accessToken: text(),
+    refreshToken: text(),
+    idToken: text(),
+    accessTokenExpiresAt: text(),
+    refreshTokenExpiresAt: text(),
+    scope: text(),
+    password: text(),
+    createdAt: text().default(sql`(CURRENT_TIMESTAMP)`),
+    updatedAt: text(),
+});
+
 export const User = sqliteTable('User', {
     id: text().primaryKey(),
     name: text().notNull(),
     surname: text().notNull(),
     email: text().unique().notNull(),
-    password: text().notNull(),
     emailVerified: integer({mode: 'boolean'}).notNull().default(true),
     image: text(),
     createdAt: text().default(sql`(CURRENT_TIMESTAMP)`),

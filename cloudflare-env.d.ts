@@ -3,6 +3,7 @@
 // Runtime types generated with workerd@1.20260722.1 2026-07-23 global_fetch_strictly_public,nodejs_compat
 interface __BaseEnv_CloudflareEnv {
 	IMAGES: ImagesBinding;
+    DB: D1Database;
 	ASSETS: Fetcher;
 	NEXTJS_ENV: string;
 	WORKER_SELF_REFERENCE: Fetcher /* gestionalebbv */;
