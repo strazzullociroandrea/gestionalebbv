@@ -32,6 +32,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      codice-fiscale-js:
+        specifier: ^2.3.23
+        version: 2.3.23
       drizzle-kit:
         specifier: ^0.31.10
         version: 0.31.10
@@ -2674,6 +2677,9 @@ packages:
 
   code-block-writer@13.0.3:
     resolution: {integrity: sha512-Oofo0pq3IKnsFtuHqSF7TqBfr71aeyZDVJ0HpmqB7FBM2qEigL0iPONSCZSO9pE9dZTAxANe5XHG9Uy0YMv8cg==}
+
+  codice-fiscale-js@2.3.23:
+    resolution: {integrity: sha512-pkbvPqRF4c+wMiHj+YnoMiktN7tYYBfBhRKRQhE74TLeBPQn9uD8y2Nl6b2tld5MenAbxjSyfuwR4TFr3fYeRg==}
 
   color-convert@2.0.1:
     resolution: {integrity: sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==}
@@ -7656,6 +7662,8 @@ snapshots:
   clsx@2.1.1: {}
 
   code-block-writer@13.0.3: {}
+
+  codice-fiscale-js@2.3.23: {}
 
   color-convert@2.0.1:
     dependencies:
