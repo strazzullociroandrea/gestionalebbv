@@ -118,7 +118,7 @@ export default function RegisterPage() {
         setLoading(true);
 
         try {
-            const { data, error: authError } = await (authClient.signUp.email as (data: {
+            const {data, error: authError} = await (authClient.signUp.email as (data: {
                 email: string;
                 password: string;
                 name: string;
@@ -130,11 +130,17 @@ export default function RegisterPage() {
                 surname: usersurname,
             });
 
+            console.log(data);
             if (authError) {
                 setError(authError.message || "Errore durante la registrazione.");
                 setLoading(false);
             } else {
-                window.location.href = "/authenticate";
+                const userId: string = data.user.id;
+
+                if (athletes.length > 0) {
+                    
+                }
+                // window.location.href = "/authenticate";
             }
         } catch (err) {
             setError("Errore imprevisto durante la registrazione.");
