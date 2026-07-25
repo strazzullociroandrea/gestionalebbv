@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
+    "@better-auth/i18n": "^1.6.25",
     "@cloudflare/next-on-pages": "^1.13.16",
     "@cloudflare/workers-types": "^5.20260723.1",
     "@fontsource-variable/geist": "^5.3.0",
