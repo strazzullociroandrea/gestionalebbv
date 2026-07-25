@@ -18,6 +18,7 @@ import {Card} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
 import {AthleteFormState} from "@/lib/schemas/athlete-data";
 import CodiceFiscale from "codice-fiscale-js";
+import {authClient} from "@/lib/auth-client";
 
 export default function RegisterPage() {
     const [error, setError] = useState("");
@@ -28,7 +29,6 @@ export default function RegisterPage() {
     const [password, setPassword] = useState("");
 
     const [athletes, setAthletes] = useState<AthleteFormState[] | []>([]);
-
     const [cfErrors, setCfErrors] = useState<{ [index: number]: string }>({});
 
     const handleAthleteChange = (index: number, field: keyof AthleteFormState, value: any) => {
@@ -100,25 +100,46 @@ export default function RegisterPage() {
 
     const handleRemoveAthlete = (index: number) => {
         const updated = athletes.filter((_, i) => i !== index);
-
         const newCfErrors = {...cfErrors};
         delete newCfErrors[index];
         setCfErrors(newCfErrors);
-
         setAthletes(updated);
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
+        setError("");
 
         if (Object.keys(cfErrors).length > 0) {
             setError("Correggi il codice fiscale degli atleti inseriti.");
             return;
         }
 
-        setError("");
         setLoading(true);
+
+        try {
+            const { data, error: authError } = await (authClient.signUp.email as (data: {
+                email: string;
+                password: string;
+                name: string;
+                surname: string;
+            }) => Promise<any>)({
+                email,
+                password,
+                name: username,
+                surname: usersurname,
+            });
+
+            if (authError) {
+                setError(authError.message || "Errore durante la registrazione.");
+                setLoading(false);
+            } else {
+                window.location.href = "/authenticate";
+            }
+        } catch (err) {
+            setError("Errore imprevisto durante la registrazione.");
+            setLoading(false);
+        }
     };
 
     const getCfStatus = (athlete: AthleteFormState, index: number) => {
@@ -131,7 +152,6 @@ export default function RegisterPage() {
     return (
         <div
             className="min-h-screen flex flex-col justify-center items-center p-4 py-12 relative overflow-hidden bg-background text-foreground">
-
             <div className="mb-8 text-center z-10">
                 <div
                     className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-orange-500 shadow-lg shadow-orange-500/30 mb-3 text-white">
@@ -147,7 +167,6 @@ export default function RegisterPage() {
 
             <Card
                 className="w-full max-w-2xl rounded-3xl shadow-2xl p-6 md:p-8 z-10 bg-card text-card-foreground border-border">
-
                 <div className="mb-6">
                     <h2 className="text-lg font-bold uppercase tracking-wider text-center">
                         Crea il tuo account
@@ -166,7 +185,6 @@ export default function RegisterPage() {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-
                     <div className="space-y-4">
                         <h3 className="text-xs font-black uppercase tracking-widest text-red-500 flex items-center gap-2">
                             <UserIcon className="w-4 h-4"/> 1. Dati Anagrafici Utente / Genitore
@@ -282,7 +300,6 @@ export default function RegisterPage() {
                             return (
                                 <div key={index}
                                      className="p-4 md:p-5 rounded-2xl bg-background/40 border border-border space-y-4 relative">
-
                                     <div className="flex items-center justify-between pb-2 border-b border-border/50">
                                         <span
                                             className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -463,7 +480,6 @@ export default function RegisterPage() {
                                             />
                                         </div>
                                     </div>
-
                                 </div>
                             );
                         })}
