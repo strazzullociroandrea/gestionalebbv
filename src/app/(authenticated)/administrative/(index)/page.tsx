@@ -1,8 +1,9 @@
+import {SidebarAdministrative} from "@/components/administrative/sidebar";
 
 export default function Home() {
-	return (
-		 <>
-			 Pagina home segreteria
-		 </>
-	);
+    return (
+        <>
+            <SidebarAdministrative role="Segreteria"/>
+        </>
+    );
 }

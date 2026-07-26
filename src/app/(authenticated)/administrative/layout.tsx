@@ -1,5 +1,7 @@
 import {getServerSession} from "@/lib/auth";
 import {redirect} from "next/navigation";
+import {SidebarProvider, SidebarTrigger} from "@/components/ui/sidebar";
+import {SidebarAdministrative} from "@/components/administrative/sidebar";
 
 export const runtime = "edge";
 
@@ -17,18 +19,29 @@ export default async function Layout({
 
     const role = session.user.role;
 
-
     if (role !== "administrative") {
         const target = role === "admin" ? "admin" : "";
         redirect("/" + target);
     }
 
     return (
-        <div className="flex min-h-screen">
-            <main className="w-full  grow p-4 md:p-6 ">
-                {children}
-            </main>
-        </div>
-    );
+        <SidebarProvider>
+            <div className="flex min-h-screen w-full flex-col md:flex-row">
+                <header className="sticky top-0 z-40 flex h-14 w-full items-center gap-4 border-b border-sidebar-border/70 bg-background/95 px-4 backdrop-blur md:hidden">
+                    <SidebarTrigger className="h-9 w-9 rounded-xl border border-sidebar-border/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" />
+                    <span className="text-sm font-semibold tracking-tight text-foreground">
+                        Gestionale BBV
+                    </span>
+                </header>
 
+                <div className="flex flex-1 w-full">
+                    <SidebarAdministrative role="Segreteria"/>
+
+                    <main className="w-full grow p-4 md:p-6 overflow-y-auto">
+                        {children}
+                    </main>
+                </div>
+            </div>
+        </SidebarProvider>
+    );
 }

@@ -2,7 +2,6 @@ import type {Metadata} from "next";
 import "./globals.css";
 import {TRPCReactProvider} from "@/trpc/react";
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 
 export const metadata: Metadata = {
     title: "Black Bulls Volley | Gestionale",
@@ -22,10 +21,7 @@ export default function RootLayout({
         <body>
         <TRPCReactProvider>
             <TooltipProvider>
-                    <SidebarProvider>
-                        <SidebarTrigger />
                         {children}
-                    </SidebarProvider>
             </TooltipProvider>
         </TRPCReactProvider>
         </body>
