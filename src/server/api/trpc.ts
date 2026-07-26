@@ -2,14 +2,12 @@ import {initTRPC, TRPCError} from "@trpc/server";
 import superjson from "superjson";
 import {ZodError} from "zod";
 import {auth} from "@/lib/auth";
-import {z} from "zod";
 import {CloudflareSchemas} from "@/lib/schemas/cloudflare-schemas";
 import {getDb} from "@/db";
 
-
 export const createTRPCContext = async (opts: { headers: Headers; env: CloudflareSchemas }) => {
     const authHandler = auth(opts.env);
-    const db = getDb(opts.env.DB);
+    const db = getDb(opts.env.gestionale_bbv);
     const session = await authHandler.api.getSession({
         headers: opts.headers
     });

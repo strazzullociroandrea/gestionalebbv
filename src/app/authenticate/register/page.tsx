@@ -19,8 +19,22 @@ import {Input} from "@/components/ui/input";
 import {AthleteFormState} from "@/lib/schemas/athlete-data";
 import CodiceFiscale from "codice-fiscale-js";
 import {authClient} from "@/lib/auth-client";
+import {api} from "@/lib/api";
+import {useRouter} from "next/navigation";
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import {Button} from "@/components/ui/button";
+import Link from "next/link";
 
 export default function RegisterPage() {
+    const router = useRouter();
     const [error, setError] = useState("");
     const [username, setUsername] = useState("");
     const [usersurname, setUsersurname] = useState("");
@@ -31,53 +45,75 @@ export default function RegisterPage() {
     const [athletes, setAthletes] = useState<AthleteFormState[] | []>([]);
     const [cfErrors, setCfErrors] = useState<{ [index: number]: string }>({});
 
-    const handleAthleteChange = (index: number, field: keyof AthleteFormState, value: any) => {
-        const updated = [...athletes];
-        updated[index] = {
-            ...updated[index],
-            [field]: field === "gender" ? (value as "M" | "F") : value
-        };
+    const addAthletesToUser = api.public.addAthletesToUser.useMutation({
+        onSuccess: (data) => {
+        },
+        onError: (error) => {
+            setError(error.message);
+        }
+    });
 
-        const currentAthlete = updated[index];
-        const newCfErrors = {...cfErrors};
+    const validateCodiceFiscale = (athlete: AthleteFormState): string | null => {
+        const {name, surname, gender, dateOfBirth, birthPlace, birthProvince, nin} = athlete;
 
         if (
-            currentAthlete.name.trim() !== "" &&
-            currentAthlete.surname.trim() !== "" &&
-            currentAthlete.gender.trim() !== "" &&
-            currentAthlete.dateOfBirth.trim() !== "" &&
-            currentAthlete.birthPlace.trim() !== "" &&
-            currentAthlete.birthProvince.trim() !== "" &&
-            currentAthlete.nin.trim().length === 16
+            !name.trim() ||
+            !surname.trim() ||
+            !gender.trim() ||
+            !dateOfBirth.trim() ||
+            !birthPlace.trim() ||
+            !birthProvince.trim() ||
+            nin.trim().length !== 16
         ) {
-            try {
-                const [year, month, day] = currentAthlete.dateOfBirth.split("-");
+            return null;
+        }
 
-                const cf = new CodiceFiscale({
-                    name: currentAthlete.name.trim(),
-                    surname: currentAthlete.surname.trim(),
-                    gender: currentAthlete.gender.trim().charAt(0) as "M" | "F",
-                    day: parseInt(day, 10),
-                    month: parseInt(month, 10),
-                    year: parseInt(year, 10),
-                    birthplace: currentAthlete.birthPlace.trim(),
-                    birthplaceProvincia: currentAthlete.birthProvince.trim().toUpperCase()
-                });
+        try {
+            const [year, month, day] = dateOfBirth.split("-");
+            if (!year || !month || !day) return null;
 
-                if (cf.toString().toUpperCase() !== currentAthlete.nin.trim().toUpperCase()) {
-                    newCfErrors[index] = "Il codice fiscale inserito non corrisponde ai dati anagrafici.";
+            const cf = new CodiceFiscale({
+                name: name.trim(),
+                surname: surname.trim(),
+                gender: gender.trim().charAt(0) as "M" | "F",
+                day: parseInt(day, 10),
+                month: parseInt(month, 10),
+                year: parseInt(year, 10),
+                birthplace: birthPlace.trim(),
+                birthplaceProvincia: birthProvince.trim().toUpperCase()
+            });
+
+            if (cf.toString().toUpperCase() !== nin.trim().toUpperCase()) {
+                return "Il codice fiscale inserito non corrisponde ai dati anagrafici.";
+            }
+            return null;
+        } catch (err) {
+            return "Errore nel calcolo o nei dati inseriti (es. comune non valido).";
+        }
+    };
+
+    const handleAthleteChange = (index: number, field: keyof AthleteFormState, value: any) => {
+        setAthletes((prevAthletes) => {
+            const updated = [...prevAthletes];
+            updated[index] = {
+                ...updated[index],
+                [field]: field === "gender" ? (value as "M" | "F") : value
+            };
+
+            const errorMsg = validateCodiceFiscale(updated[index]);
+
+            setCfErrors((prevErrors) => {
+                const newCfErrors = {...prevErrors};
+                if (errorMsg) {
+                    newCfErrors[index] = errorMsg;
                 } else {
                     delete newCfErrors[index];
                 }
-            } catch (err) {
-                newCfErrors[index] = "Errore nel calcolo o nei dati inseriti (es. comune non valido).";
-            }
-        } else {
-            delete newCfErrors[index];
-        }
+                return newCfErrors;
+            });
 
-        setCfErrors(newCfErrors);
-        setAthletes(updated);
+            return updated;
+        });
     };
 
     const handleAddAthlete = () => {
@@ -123,24 +159,38 @@ export default function RegisterPage() {
                 password: string;
                 name: string;
                 surname: string;
+                emailVerified: number;
             }) => Promise<any>)({
                 email,
                 password,
                 name: username,
                 surname: usersurname,
+                emailVerified: 1
             });
 
-            console.log(data);
             if (authError) {
-                setError(authError.message || "Errore durante la registrazione.");
+                setError(authError.message || "Errore durante la registrazione dell'utente.");
                 setLoading(false);
             } else {
                 const userId: string = data.user.id;
 
                 if (athletes.length > 0) {
-                    
+                    await addAthletesToUser.mutateAsync({
+                        userId,
+                        athletes: athletes.map((athlete) => ({
+                            name: athlete.name,
+                            surname: athlete.surname,
+                            dateOfBirth: athlete.dateOfBirth,
+                            homeAddress: athlete.homeAddress,
+                            nin: athlete.nin,
+                            expirationMedicalCertificate: athlete.expirationMedicalCertificate,
+                            birthPlace: athlete.birthPlace,
+                            countryBirthPlace: athlete.birthProvince.trim().toUpperCase(),
+                        })),
+                    });
                 }
-                // window.location.href = "/authenticate";
+
+                router.push("/");
             }
         } catch (err) {
             setError("Errore imprevisto durante la registrazione.");
@@ -182,13 +232,36 @@ export default function RegisterPage() {
                     </p>
                 </div>
 
-                {error && (
-                    <div
-                        className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs font-medium flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4 shrink-0"/>
-                        <span>{error}</span>
-                    </div>
-                )}
+                <Dialog open={error !== ""} onOpenChange={() => setError("")}>
+                    <DialogContent
+                        className="rounded-3xl border-border bg-card text-card-foreground p-6 shadow-2xl sm:max-w-md">
+                        <DialogHeader className="space-y-3">
+                            <div
+                                className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-red-500 shadow-inner">
+                                <AlertCircle className="h-6 w-6 shrink-0"/>
+                            </div>
+                            <DialogTitle
+                                className="text-center text-base font-black uppercase tracking-wider text-foreground">
+                                Attenzione
+                            </DialogTitle>
+                        </DialogHeader>
+
+                        <DialogDescription className="text-center text-xs text-muted-foreground mt-1 mb-2">
+                            <span className="block font-medium">{error}</span>
+                        </DialogDescription>
+
+                        <DialogFooter className="sm:justify-center pt-2">
+                            <DialogClose>
+                                <Button
+                                    variant="default"
+                                    className="w-full sm:w-auto inline-flex items-center justify-center bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 px-6 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-red-950/40 transition-all cursor-pointer active:scale-[0.98]"
+                                >
+                                    Chiudi
+                                </Button>
+                            </DialogClose>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-4">
@@ -304,8 +377,10 @@ export default function RegisterPage() {
                             const hasError = !!cfErrors[index];
 
                             return (
-                                <div key={index}
-                                     className="p-4 md:p-5 rounded-2xl bg-background/40 border border-border space-y-4 relative">
+                                <div
+                                    key={index}
+                                    className="p-4 md:p-5 rounded-2xl bg-background/40 border border-border space-y-4 relative"
+                                >
                                     <div className="flex items-center justify-between pb-2 border-b border-border/50">
                                         <span
                                             className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -324,8 +399,9 @@ export default function RegisterPage() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         <div>
                                             <label
-                                                className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">Nome
-                                                Atleta*</label>
+                                                className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">
+                                                Nome Atleta*
+                                            </label>
                                             <Input
                                                 type="text"
                                                 required
@@ -337,8 +413,9 @@ export default function RegisterPage() {
                                         </div>
                                         <div>
                                             <label
-                                                className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">Cognome
-                                                Atleta*</label>
+                                                className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">
+                                                Cognome Atleta*
+                                            </label>
                                             <Input
                                                 type="text"
                                                 required
@@ -353,8 +430,9 @@ export default function RegisterPage() {
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                         <div className="col-span-2">
                                             <label
-                                                className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">Data
-                                                di Nascita*</label>
+                                                className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">
+                                                Data di Nascita*
+                                            </label>
                                             <Input
                                                 type="date"
                                                 required
@@ -365,7 +443,9 @@ export default function RegisterPage() {
                                         </div>
                                         <div className="col-span-2">
                                             <label
-                                                className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">Sesso*</label>
+                                                className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">
+                                                Sesso*
+                                            </label>
                                             <select
                                                 value={athlete.gender}
                                                 onChange={(e) => handleAthleteChange(index, "gender", e.target.value)}
@@ -380,8 +460,9 @@ export default function RegisterPage() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         <div>
                                             <label
-                                                className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">Luogo
-                                                di Nascita*</label>
+                                                className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">
+                                                Luogo di Nascita*
+                                            </label>
                                             <Input
                                                 type="text"
                                                 required
@@ -393,8 +474,9 @@ export default function RegisterPage() {
                                         </div>
                                         <div>
                                             <label
-                                                className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">Provincia
-                                                Nascita*</label>
+                                                className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">
+                                                Provincia Nascita*
+                                            </label>
                                             <Input
                                                 type="text"
                                                 required
@@ -409,8 +491,9 @@ export default function RegisterPage() {
 
                                     <div>
                                         <label
-                                            className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">Indirizzo
-                                            di Residenza*</label>
+                                            className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">
+                                            Indirizzo di Residenza*
+                                        </label>
                                         <Input
                                             type="text"
                                             required
@@ -424,13 +507,15 @@ export default function RegisterPage() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         <div>
                                             <label
-                                                className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">Codice
-                                                Fiscale*</label>
+                                                className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">
+                                                Codice Fiscale*
+                                            </label>
                                             <div className="relative">
                                                 <Input
                                                     type="text"
                                                     required
                                                     maxLength={16}
+                                                    minLength={16}
                                                     value={athlete.nin}
                                                     onChange={(e) => handleAthleteChange(index, "nin", e.target.value.toUpperCase())}
                                                     placeholder="RSSMRA..."
@@ -455,11 +540,11 @@ export default function RegisterPage() {
                                         </div>
                                         <div>
                                             <label
-                                                className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">Scadenza
-                                                Certificato Medico*</label>
+                                                className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">
+                                                Scadenza Certificato Medico
+                                            </label>
                                             <Input
                                                 type="date"
-                                                required
                                                 value={athlete.expirationMedicalCertificate}
                                                 onChange={(e) => handleAthleteChange(index, "expirationMedicalCertificate", e.target.value)}
                                                 className="w-full h-10 bg-background/50 border-input rounded-xl text-sm"
@@ -469,8 +554,9 @@ export default function RegisterPage() {
 
                                     <div>
                                         <label
-                                            className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">Password
-                                            Squadra*</label>
+                                            className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1">
+                                            Password Squadra*
+                                        </label>
                                         <div className="relative">
                                             <span
                                                 className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
@@ -501,10 +587,10 @@ export default function RegisterPage() {
                     </button>
 
                     <div className="mt-4 text-center">
-                        <a href="/authenticate"
-                           className="text-xs text-muted-foreground hover:text-red-400 transition-colors inline-block">
+                        <Link href="/authenticate"
+                              className="text-xs text-muted-foreground hover:text-red-400 transition-colors inline-block">
                             Hai già un account? <span className="underline font-semibold">Accedi al portale</span>
-                        </a>
+                        </Link>
                     </div>
                 </form>
 

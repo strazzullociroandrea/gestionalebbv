@@ -1,0 +1,1 @@
+ALTER TABLE `Athlete` ADD `userId` text NOT NULL REFERENCES User(id);

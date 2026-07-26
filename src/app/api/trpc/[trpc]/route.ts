@@ -6,7 +6,7 @@ import {getRequestContext} from "@cloudflare/next-on-pages";
 export const runtime = "edge";
 
 const handler = async (req: Request) => {
-    const {env} = getRequestContext();
+    const {env} = getRequestContext() as unknown as { env: any };
 
     return fetchRequestHandler({
         endpoint: "/api/trpc",
@@ -14,7 +14,7 @@ const handler = async (req: Request) => {
         router: appRouter,
         createContext: () => createTRPCContext({
             headers: req.headers,
-            env: env as any
+            env: env,
         }),
     });
 };

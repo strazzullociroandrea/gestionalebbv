@@ -1,5 +1,6 @@
 import type {Metadata} from "next";
 import "./globals.css";
+import {TRPCReactProvider} from "@/trpc/react";
 
 export const metadata: Metadata = {
     title: "Black Bulls Volley | Gestionale",
@@ -16,7 +17,11 @@ export default function RootLayout({
         <html lang="en">
         <head>
         </head>
-        <body>{children}</body>
+        <body>
+        <TRPCReactProvider>
+            {children}
+        </TRPCReactProvider>
+        </body>
         </html>
     );
 }

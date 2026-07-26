@@ -7,5 +7,5 @@ export const getDb = (d1: D1Database) => {
 };
 
 export interface Env {
-    DB: D1Database;
+    gestionale_bbv: D1Database;
 }

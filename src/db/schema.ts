@@ -79,6 +79,8 @@ export const Athlete = sqliteTable('Athlete', {
     expirationMedicalCertificate: text().notNull(),
     homeAddress: text().notNull(),
     nin: text().notNull(),
+    birthPlace: text().notNull(),
+    countryBirthPlace: text().notNull(),
     status: text('status', {enum: status}).notNull().default('inactive'),
 })
 
