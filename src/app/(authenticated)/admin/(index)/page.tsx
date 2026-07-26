@@ -2,7 +2,7 @@
 export default function Home() {
 	return (
 		 <>
-			 logged in as page
+			 Pagina home admin
 		 </>
 	);
 }

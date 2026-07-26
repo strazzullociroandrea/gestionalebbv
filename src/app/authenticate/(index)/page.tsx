@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
 import Link from "next/link";
+import {authClient} from "@/lib/auth-client";
 
 export default function LoginCard() {
     const [email, setEmail] = useState("");
@@ -26,8 +27,11 @@ export default function LoginCard() {
         setLoading(true);
 
         try {
-            console.log("Tentativo di accesso con:", {email, password});
-            await new Promise((res) => setTimeout(res, 1000));
+            const {data, error} = await authClient.signIn.email({
+                email,
+                password,
+            });
+
         } catch (err: any) {
             setError("Credenziali non valide o errore di autenticazione.");
         } finally {
