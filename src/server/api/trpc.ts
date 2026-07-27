@@ -56,8 +56,25 @@ const isAdminMiddleware = t.middleware(({ctx, next}) => {
     });
 });
 
+const isAdministrativeMiddleware = t.middleware(({ctx, next}) => {
+    if (ctx.session?.user.role !== "administrative") {
+        throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Accesso non autorizzato. Devi essere un membro segreteria.",
+        });
+    }
+    return next({
+        ctx: {
+            ...ctx,
+            isAdmin: true,
+        },
+    });
+});
+
+
 export const createCallerFactory = t.createCallerFactory;
 export const createTRPCRouter = t.router;
 
 export const publicProcedure = t.procedure;
+export const administrativeProcedure = t.procedure.use(isAdministrativeMiddleware);
 export const adminProcedure = t.procedure.use(isAdminMiddleware);
