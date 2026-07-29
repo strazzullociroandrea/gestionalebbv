@@ -14,12 +14,14 @@ import {
 import {Input} from "@/components/ui/input";
 import Link from "next/link";
 import {authClient} from "@/lib/auth-client";
+import {useRouter} from "next/navigation";
 
 export default function LoginCard() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -31,6 +33,10 @@ export default function LoginCard() {
                 email,
                 password,
             });
+
+            if (data) {
+                router.push("/");
+            }
 
         } catch (err: any) {
             setError("Credenziali non valide o errore di autenticazione.");

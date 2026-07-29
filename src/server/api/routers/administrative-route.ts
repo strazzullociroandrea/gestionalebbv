@@ -1,20 +1,19 @@
-import {administrativeProcedure, createTRPCRouter} from "@/server/api/trpc";
-import {z} from "zod";
-import {SportSeason} from "@/db/schema"
-import {eq} from "drizzle-orm";
-import {TRPCError} from "@trpc/server";
+import { administrativeProcedure, createTRPCRouter } from "@/server/api/trpc";
+import { z } from "zod";
+import { SportSeason, Team } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 
 export const AdministrativeRoute = createTRPCRouter({
     getSeason: administrativeProcedure.input(z.void())
-        .query(async ({ctx}) => {
+        .query(async ({ ctx }) => {
             try {
-
-                return await ctx.db.select().from(SportSeason).orderBy(SportSeason.status)
+                return await ctx.db.select().from(SportSeason).orderBy(SportSeason.status);
             } catch (e) {
                 console.error("[GET-SEASON API ERROR] ", e);
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
-                    message: "Attenzione. Non è stato possibile recuperare la stagione attiva",
+                    message: "Attenzione. Non è stato possibile recuperare le stagioni",
                 });
             }
         }),
@@ -27,7 +26,7 @@ export const AdministrativeRoute = createTRPCRouter({
                 renewalFee: z.number().positive("Il costo deve essere maggiore di zero"),
             })
         )
-        .mutation(async ({ctx, input}) => {
+        .mutation(async ({ ctx, input }) => {
             try {
                 const existingSeason = await ctx.db
                     .select()
@@ -43,7 +42,7 @@ export const AdministrativeRoute = createTRPCRouter({
                 }
 
                 await ctx.db.update(SportSeason)
-                    .set({status: "inactive"})
+                    .set({ status: "inactive" })
                     .where(eq(SportSeason.status, "active"));
 
                 const [newSeason] = await ctx.db.insert(SportSeason).values({
@@ -68,6 +67,75 @@ export const AdministrativeRoute = createTRPCRouter({
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
                     message: "Attenzione. Non è stato possibile procedere con la creazione della stagione",
+                });
+            }
+        }),
+
+    getAllTeams: administrativeProcedure.input(z.void())
+        .query(async ({ ctx }) => {
+            try {
+                return await ctx.db
+                    .select({
+                        team: Team,
+                        season: SportSeason,
+                    })
+                    .from(Team)
+                    .innerJoin(SportSeason, eq(Team.idSeason, SportSeason.id))
+                    .orderBy(SportSeason.season);
+            } catch (e) {
+                console.error("[GET-TEAMS API ERROR] ", e);
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Attenzione. Non è stato possibile recuperare i team",
+                });
+            }
+        }),
+
+    addTeam: administrativeProcedure
+        .input(
+            z.object({
+                name: z.string().min(1, "Il nome della squadra è obbligatorio"),
+                subscribePassword: z.string().min(1, "La password di iscrizione è obbligatoria"),
+                password: z.string().min(1, "La password è obbligatoria"),
+                idSeason: z.string().min(1, "L'ID della stagione è obbligatorio"),
+            })
+        )
+        .mutation(async ({ ctx, input }) => {
+            try {
+                const seasonExists = await ctx.db
+                    .select()
+                    .from(SportSeason)
+                    .where(eq(SportSeason.id, input.idSeason))
+                    .limit(1);
+
+                if (seasonExists.length === 0) {
+                    throw new TRPCError({
+                        code: "NOT_FOUND",
+                        message: "Attenzione! La stagione selezionata non esiste o è stata rimossa.",
+                    });
+                }
+
+                const [newTeam] = await ctx.db.insert(Team).values({
+                    id: crypto.randomUUID(),
+                    name: input.name,
+                    subscribePassword: input.subscribePassword,
+                    password: input.password,
+                    idSeason: input.idSeason,
+                }).returning();
+
+                return {
+                    success: true,
+                    data: newTeam,
+                };
+            } catch (error) {
+                if (error instanceof TRPCError) {
+                    throw error;
+                }
+
+                console.log("[ADD-TEAM API ERROR] ", error);
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Attenzione. Non è stato possibile procedere con la creazione della squadra",
                 });
             }
         }),

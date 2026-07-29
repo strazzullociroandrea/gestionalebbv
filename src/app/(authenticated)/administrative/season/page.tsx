@@ -224,7 +224,6 @@ export default function Season() {
                 </div>
             ) : (
                 <>
-                    {/* Vista Mobile: Card layout */}
                     <div className="grid grid-cols-1 gap-4 sm:hidden">
                         {seasons.map((season, index) => {
                             const isActive = season.status === "active";
@@ -257,7 +256,6 @@ export default function Season() {
                         })}
                     </div>
 
-                    {/* Vista Desktop: Tabella tradizionale */}
                     <div className="hidden sm:block rounded-xl border bg-white shadow-sm overflow-hidden">
                         <Table>
                             <TableHeader className="bg-slate-50">
