@@ -105,6 +105,9 @@ export default function AnagraphicPage() {
 
                         </div>
                     )}
+                    <p className=" text-center mt-3 text-sm text-slate-500">
+                        I dati non sono corretti? Comunicalo alla segreteria.
+                    </p>
                 </CardContent>
             </Card>
         </div>
