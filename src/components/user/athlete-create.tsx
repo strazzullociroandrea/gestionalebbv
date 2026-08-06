@@ -185,15 +185,15 @@ export const AthleteInfo = ({idUser, idAthlete, emailUser}: AthleteInfoProps) =>
     }
 
     return (
-        <Card className="border border-zinc-200 overflow-hidden p-0 shadow-lg rounded-2xl relative w-full">
-            <div className="relative h-24 sm:h-32 bg-gradient-to-r from-red-900 via-red-800 to-red-700 border-b border-red-600/30 overflow-hidden">
+        <Card className="border border-zinc-800 overflow-hidden p-0 shadow-2xl rounded-2xl relative w-full">
+            <div className="relative h-24 sm:h-32 bg-linear-to-r from-red-900 via-red-800 to-red-700 border-b border-red-600/30 overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(220,38,38,0.35),transparent_60%)]"/>
             </div>
 
             <CardContent className="p-4 sm:p-6 pt-0 relative">
                 <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-4 -mt-10 sm:-mt-12 mb-6 sm:mb-8 text-center sm:text-left">
                     <div className="flex flex-col sm:flex-row items-center sm:items-end space-y-3 sm:space-y-0 sm:space-x-4">
-                        <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-red-50 border-2 border-red-200 flex items-center justify-center text-red-700 font-black text-2xl sm:text-3xl shadow-md shrink-0">
+                        <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-zinc-950 border-2 border-red-600 flex items-center justify-center text-amber-400 font-black text-2xl sm:text-3xl shadow-2xl shadow-red-600/20 shrink-0">
                             {formData.name?.[0]?.toUpperCase() || "B"}
                             {formData.surname?.[0]?.toUpperCase() || "B"}
                         </div>
