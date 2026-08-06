@@ -165,7 +165,7 @@ export const AthleteInfo = ({idUser, idAthlete, emailUser}: AthleteInfoProps) =>
 
     if (isTrpcLoading) {
         return (
-            <Card className="bg-zinc-950 border-zinc-800 p-8 sm:p-12 text-center text-zinc-400">
+            <Card className=" border-zinc-800 p-8 sm:p-12 text-center text-zinc-400">
                 <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-red-600"/>
                 <p className="font-bold tracking-wider uppercase text-xs sm:text-sm">Caricamento scheda atleta...</p>
             </Card>
