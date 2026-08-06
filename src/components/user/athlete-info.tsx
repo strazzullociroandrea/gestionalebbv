@@ -270,7 +270,7 @@ export const AthleteInfo = ({idUser, idAthlete, emailUser}: AthleteInfoProps) =>
                                 className="border-zinc-700 focus:border-red-600 font-medium h-10 rounded-lg text-sm"
                             />
                         ) : (
-                            <p className="font-bold text-sm sm:text-base break-words">{formData.name || "N/D"}</p>
+                            <p className="text-sm sm:text-base break-words">{formData.name || "N/D"}</p>
                         )}
                     </Card>
 
@@ -288,7 +288,7 @@ export const AthleteInfo = ({idUser, idAthlete, emailUser}: AthleteInfoProps) =>
                                 className="border-zinc-700 focus:border-red-600 font-medium h-10 rounded-lg text-sm"
                             />
                         ) : (
-                            <p className="font-bold text-sm sm:text-base break-words">{formData.surname || "N/D"}</p>
+                            <p className="text-sm sm:text-base break-words">{formData.surname || "N/D"}</p>
                         )}
                     </Card>
 
@@ -307,7 +307,7 @@ export const AthleteInfo = ({idUser, idAthlete, emailUser}: AthleteInfoProps) =>
                                 className="border-zinc-700 focus:border-red-600 font-medium h-10 rounded-lg text-sm"
                             />
                         ) : (
-                            <p className="font-bold text-sm sm:text-base">
+                            <p className="text-sm sm:text-base">
                                 {formData.dateOfBirth ? new Date(formData.dateOfBirth).toLocaleDateString('it-IT') : "N/D"}
                             </p>
                         )}
@@ -328,7 +328,7 @@ export const AthleteInfo = ({idUser, idAthlete, emailUser}: AthleteInfoProps) =>
                                 className="border-zinc-700 focus:border-red-600 font-medium h-10 rounded-lg text-sm"
                             />
                         ) : (
-                            <p className="font-bold text-sm sm:text-base flex items-center gap-2">
+                            <p className="text-sm sm:text-base flex items-center gap-2">
                                 {formData.expirationMedicalCertificate ? new Date(formData.expirationMedicalCertificate).toLocaleDateString('it-IT') : "N/D"}
                             </p>
                         )}
@@ -360,7 +360,7 @@ export const AthleteInfo = ({idUser, idAthlete, emailUser}: AthleteInfoProps) =>
                                 )}
                             </div>
                         ) : (
-                            <p className="font-bold font-mono text-sm sm:text-base uppercase tracking-wider break-all">{formData.nin || "N/D"}</p>
+                            <p className="text-sm sm:text-base uppercase tracking-wider break-all">{formData.nin || "N/D"}</p>
                         )}
                     </Card>
 
@@ -378,7 +378,7 @@ export const AthleteInfo = ({idUser, idAthlete, emailUser}: AthleteInfoProps) =>
                                 className="border-zinc-700 focus:border-red-600 font-medium h-10 rounded-lg text-sm"
                             />
                         ) : (
-                            <p className="font-bold text-sm sm:text-base break-words">{formData.homeAddress || "N/D"}</p>
+                            <p className="  text-sm sm:text-base break-words">{formData.homeAddress || "N/D"}</p>
                         )}
                     </Card>
 
@@ -396,7 +396,7 @@ export const AthleteInfo = ({idUser, idAthlete, emailUser}: AthleteInfoProps) =>
                                 className="border-zinc-700 focus:border-red-600 font-medium h-10 rounded-lg text-sm"
                             />
                         ) : (
-                            <p className="font-bold text-sm sm:text-base break-words">{formData.birthPlace || "N/D"}</p>
+                            <p className="text-sm sm:text-base break-words">{formData.birthPlace || "N/D"}</p>
                         )}
                     </Card>
 
@@ -415,7 +415,7 @@ export const AthleteInfo = ({idUser, idAthlete, emailUser}: AthleteInfoProps) =>
                                 className="border-zinc-700 focus:border-red-600 font-medium h-10 rounded-lg text-sm"
                             />
                         ) : (
-                            <p className="font-bold text-sm sm:text-base uppercase">{formData.countryBirthPlace || "N/D"}</p>
+                            <p className="text-sm sm:text-base uppercase">{formData.countryBirthPlace || "N/D"}</p>
                         )}
                     </Card>
 
@@ -424,7 +424,7 @@ export const AthleteInfo = ({idUser, idAthlete, emailUser}: AthleteInfoProps) =>
                             <Mail className="h-4 w-4 text-red-500 shrink-0"/>
                             <span className="text-zinc-400 uppercase text-[11px] font-bold tracking-wider">Email Genitore / Referente</span>
                         </div>
-                        <p className="font-bold text-sm sm:text-base break-all">{emailUser || "N/D"}</p>
+                        <p className="text-sm sm:text-base break-all">{emailUser || "N/D"}</p>
                     </Card>
                 </div>
             </CardContent>

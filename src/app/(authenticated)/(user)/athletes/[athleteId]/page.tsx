@@ -7,6 +7,7 @@ import {User, ClipboardList, Users} from "lucide-react";
 import {Card} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {AthleteInfo} from "@/components/user/athlete-info";
+import {SubscriptionTeam} from "@/components/user/subscription";
 
 export default function AthletePage() {
     const params = useParams();
@@ -34,16 +35,16 @@ export default function AthletePage() {
     }
 
     return (
-        <div className="w-full max-w-5xl mx-auto p-4 md:p-6 space-y-6">
+        <div className="min-h-screen flex flex-col items-center p-4 md:p-6 space-y-6 bg-background text-foreground">
             <div
-                className="flex flex-wrap items-center gap-2 p-1.5 border border-zinc-800 rounded-xl shadow-lg bg-zinc-950">
+                className="flex flex-wrap items-center gap-2 p-1.5 border border-border rounded-3xl shadow-lg bg-card">
                 <Button
                     variant={activeTab === "anagrafica" ? "default" : "ghost"}
                     onClick={() => setActiveTab("anagrafica")}
-                    className={`flex-1 min-w-35 font-bold uppercase tracking-wider text-xs sm:text-sm transition-all ${
+                    className={`cursor-pointer flex-1 min-w-35 font-bold uppercase tracking-wider text-xs sm:text-sm transition-all ${
                         activeTab === "anagrafica"
-                            ? "bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-600/20"
-                            : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+                            ? "bg-red-500 hover:bg-red-600 text-white shadow-md shadow-red-500/20"
+                            : "text-muted-foreground"
                     }`}
                 >
                     <User className="mr-2 h-4 w-4"/>
@@ -53,10 +54,10 @@ export default function AthletePage() {
                 <Button
                     variant={activeTab === "iscrizione" ? "default" : "ghost"}
                     onClick={() => setActiveTab("iscrizione")}
-                    className={`flex-1 min-w-35 font-bold uppercase tracking-wider text-xs sm:text-sm transition-all ${
+                    className={`cursor-pointer flex-1 min-w-35 font-bold uppercase tracking-wider text-xs sm:text-sm transition-all ${
                         activeTab === "iscrizione"
-                            ? "bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-600/20"
-                            : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+                            ? "bg-red-500 hover:bg-red-600 text-white shadow-md shadow-red-500/20"
+                            : "text-muted-foreground"
                     }`}
                 >
                     <ClipboardList className="mr-2 h-4 w-4"/>
@@ -66,14 +67,14 @@ export default function AthletePage() {
                 <Button
                     variant={activeTab === "squadre" ? "default" : "ghost"}
                     onClick={() => setActiveTab("squadre")}
-                    className={`flex-1 min-w-35 font-bold uppercase tracking-wider text-xs sm:text-sm transition-all ${
+                    className={`cursor-pointer flex-1 min-w-35 font-bold uppercase tracking-wider text-xs sm:text-sm transition-all ${
                         activeTab === "squadre"
-                            ? "bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-600/20"
-                            : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+                            ? "bg-red-500 hover:bg-red-600 text-white shadow-md shadow-red-500/20"
+                            : "text-muted-foreground"
                     }`}
                 >
                     <Users className="mr-2 h-4 w-4"/>
-                    Squadre Iscritte
+                    Squadre
                 </Button>
             </div>
 
@@ -86,15 +87,14 @@ export default function AthletePage() {
             )}
 
             {activeTab === "iscrizione" && (
-                <Card className="bg-zinc-950 border-zinc-800 text-white p-6">
-                    <h3 className="text-lg font-bold text-red-500 uppercase">Modulo Iscrizione Squadra</h3>
-                    <p className="text-sm text-zinc-400 mt-1">Sezione gestita per la registrazione ai tornei e
-                        campionati agonistici.</p>
-                </Card>
+                <SubscriptionTeam
+                    idUser={userId}
+                    idAthlete={idAthlete}
+                />
             )}
 
             {activeTab === "squadre" && (
-                <Card className="bg-zinc-950 border-zinc-800 text-white p-6">
+                <Card className="bg-card text-card-foreground p-6 border-border">
                     <h3 className="text-lg font-bold text-red-500 uppercase">Squadre Iscritte</h3>
                     <p className="text-sm text-zinc-400 mt-1">Elenco delle selezioni sportive a cui fa parte
                         l'atleta.</p>
