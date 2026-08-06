@@ -1,8 +1,8 @@
 "use client";
 
-import {useState} from "react";
-import {Card, CardContent} from "@/components/ui/card";
-import {api} from "@/lib/api";
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { api } from "@/lib/api";
 import {
     Select,
     SelectContent,
@@ -11,10 +11,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import {Input} from "@/components/ui/input";
-import {Button} from "@/components/ui/button";
-import {Label} from "@/components/ui/label";
-import {Users, KeyRound, Trophy, Send, Loader2, CheckCircle2, AlertTriangle} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Users, KeyRound, Trophy, Send, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 
 export const SubscriptionTeam = ({
                                      idUser,
@@ -36,7 +36,7 @@ export const SubscriptionTeam = ({
             setErrorMessage(null);
             setSelectedTeam("");
             setPassword("");
-            await utils.user.getAvailableTeams.invalidate({idAthlete});
+            await utils.user.getAvailableTeams.invalidate({ idAthlete });
         },
         onError: (error) => {
             setSuccess(false);
@@ -44,10 +44,12 @@ export const SubscriptionTeam = ({
         },
     });
 
-    const {data: availableTeam, isLoading} = api.user.getAvailableTeams.useQuery(
-        {idAthlete},
-        {enabled: !!idAthlete}
+    const { data: availableTeam, isLoading } = api.user.getAvailableTeams.useQuery(
+        { idAthlete },
+        { enabled: !!idAthlete }
     );
+
+    const selectedTeamData = availableTeam?.find((item) => item.Team.id === selectedTeam);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -68,14 +70,13 @@ export const SubscriptionTeam = ({
     };
 
     return (
-        <Card
-            className="border border-zinc-200 bg-white text-zinc-900 overflow-hidden p-0 shadow-lg rounded-2xl relative w-full">
-            <div className="h-2 w-full bg-gradient-to-r from-red-600 via-red-500 to-amber-500"/>
+        <Card className="border border-zinc-200 bg-white text-zinc-900 overflow-hidden p-0 shadow-lg rounded-2xl relative w-full">
+            <div className="h-2 w-full bg-gradient-to-r from-red-600 via-red-500 to-amber-500" />
 
             <CardContent className="p-6 md:p-8 space-y-6">
                 <div className="flex items-center gap-3 border-b border-zinc-100 pb-4">
                     <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 shadow-sm">
-                        <Trophy className="w-6 h-6"/>
+                        <Trophy className="w-6 h-6" />
                     </div>
                     <div>
                         <h2 className="text-xl font-extrabold tracking-wide uppercase text-zinc-900">
@@ -88,26 +89,23 @@ export const SubscriptionTeam = ({
                 </div>
 
                 {success && (
-                    <div
-                        className="flex items-center gap-2.5 p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-sm font-medium animate-in fade-in slide-in-from-top-2">
-                        <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0"/>
+                    <div className="flex items-center gap-2.5 p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-sm font-medium animate-in fade-in slide-in-from-top-2">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                         <span>Iscrizione completata con successo!</span>
                     </div>
                 )}
 
                 {errorMessage && (
-                    <div
-                        className="flex items-center gap-2.5 p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm font-medium animate-in fade-in slide-in-from-top-2">
-                        <AlertTriangle className="w-5 h-5 text-red-600 shrink-0"/>
+                    <div className="flex items-center gap-2.5 p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm font-medium animate-in fade-in slide-in-from-top-2">
+                        <AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />
                         <span>{errorMessage}</span>
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="space-y-2">
-                        <Label
-                            className="text-xs font-semibold uppercase tracking-wider text-zinc-700 flex items-center gap-1.5">
-                            <Users className="w-4 h-4 text-red-600"/>
+                        <Label className="text-xs font-semibold uppercase tracking-wider text-zinc-700 flex items-center gap-1.5">
+                            <Users className="w-4 h-4 text-red-600" />
                             Squadra
                         </Label>
                         <Select
@@ -118,10 +116,10 @@ export const SubscriptionTeam = ({
                                 if (errorMessage) setErrorMessage(null);
                             }}
                         >
-                            <SelectTrigger
-                                className="w-full bg-zinc-50 border-zinc-200 text-zinc-900 focus:ring-red-600 focus:border-red-600 h-11 rounded-xl transition-all">
-                                <SelectValue
-                                    placeholder={isLoading ? "Caricamento squadre..." : "Seleziona la squadra"}/>
+                            <SelectTrigger className="w-full bg-zinc-50 border-zinc-200 text-zinc-900 focus:ring-red-600 focus:border-red-600 h-11 rounded-xl transition-all">
+                                <SelectValue placeholder={isLoading ? "Caricamento squadre..." : "Seleziona la squadra"}>
+                                    {selectedTeamData ? `${selectedTeamData.Team.name} - ${selectedTeamData.SportSeason.season}` : undefined}
+                                </SelectValue>
                             </SelectTrigger>
                             <SelectContent className="bg-white border-zinc-200 text-zinc-900 rounded-xl shadow-xl">
                                 <SelectGroup>
@@ -131,7 +129,7 @@ export const SubscriptionTeam = ({
                                             value={item.Team.id}
                                             className="focus:bg-red-50 focus:text-red-600 cursor-pointer rounded-lg my-0.5 font-medium"
                                         >
-                                            {item.Team.name} - {item.SportSeason.season}
+                                            {`${item.Team.name} - ${item.SportSeason.season}`}
                                         </SelectItem>
                                     ))}
                                     {availableTeam?.length === 0 && (
@@ -145,18 +143,17 @@ export const SubscriptionTeam = ({
                     </div>
 
                     <div className="space-y-2">
-                        <Label
-                            className="text-xs font-semibold uppercase tracking-wider text-zinc-700 flex items-center gap-1.5">
-                            <KeyRound className="w-4 h-4 text-red-600"/>
+                        <Label className="text-xs font-semibold uppercase tracking-wider text-zinc-700 flex items-center gap-1.5">
+                            <KeyRound className="w-4 h-4 text-red-600" />
                             Password
                         </Label>
                         <Input
                             disabled={isLoading || availableTeam?.length === 0}
                             type="password"
                             placeholder={
-                                availableTeam?.length === 0 ?
-                                    "Nessuna squadra disponibile" :
-                                    "Seleziona la squadra"
+                                availableTeam?.length === 0
+                                    ? "Nessuna squadra disponibile"
+                                    : "Inserisci la password"
                             }
                             value={password}
                             onChange={(e) => {
@@ -175,12 +172,12 @@ export const SubscriptionTeam = ({
                         >
                             {handleSubscribe.isPending ? (
                                 <>
-                                    <Loader2 className="w-4 h-4 animate-spin"/>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
                                     Invio in corso...
                                 </>
                             ) : (
                                 <>
-                                    <Send className="w-4 h-4"/>
+                                    <Send className="w-4 h-4" />
                                     Invia Iscrizione
                                 </>
                             )}
