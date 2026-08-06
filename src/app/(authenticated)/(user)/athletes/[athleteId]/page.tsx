@@ -8,6 +8,7 @@ import {Card} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {AthleteInfo} from "@/components/user/athlete-info";
 import {SubscriptionTeam} from "@/components/user/subscription";
+import {SubscribedTeam} from "@/components/user/subscribed";
 
 export default function AthletePage() {
     const params = useParams();
@@ -94,11 +95,11 @@ export default function AthletePage() {
             )}
 
             {activeTab === "squadre" && (
-                <Card className="bg-card text-card-foreground p-6 border-border">
-                    <h3 className="text-lg font-bold text-red-500 uppercase">Squadre Iscritte</h3>
-                    <p className="text-sm text-zinc-400 mt-1">Elenco delle selezioni sportive a cui fa parte
-                        l'atleta.</p>
-                </Card>
+                <SubscribedTeam
+                    idAthlete={idAthlete}
+                    idUser={userId}
+
+                />
             )}
         </div>
     );
