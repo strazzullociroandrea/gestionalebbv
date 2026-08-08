@@ -1,6 +1,6 @@
 "use client";
 
-import {useState, useEffect} from "react";
+import {useState} from "react";
 import {
     User,
     Contact,
@@ -9,51 +9,38 @@ import {
     MapPin,
     CreditCard,
     Globe,
-    Pencil,
-    Save,
-    X,
-    Loader2,
     CheckCircle2,
-    ShieldAlert
+    ShieldAlert,
+    UserPlus,
+    Loader2,
+    UserCircle
 } from "lucide-react";
 import {Card, CardContent} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
-import {api} from "@/lib/api";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import CodiceFiscale from "codice-fiscale-js";
+import {api} from "@/lib/api";
 
-interface AthleteInfoProps {
+interface AthleteCreateProps {
     idUser: string;
-    idAthlete: string;
     emailUser?: string;
+    onCreated?: (idAthlete?: string) => void;
+    setIdAthlete: (idAthlete?: string) => void;
 }
 
-export const AthleteInfo = ({idUser, idAthlete, emailUser}: AthleteInfoProps) => {
-    const utils = api.useUtils();
-    const [isEditing, setIsEditing] = useState(false);
+export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: AthleteCreateProps) => {
+    const [isCreated, setIsCreated] = useState(false);
     const [successMessage, setSuccessMessage] = useState(false);
     const [cfError, setCfError] = useState<string | null>(null);
-
-    const {data: responseData, isLoading: isTrpcLoading, error} = api.user.getAthleteInfo.useQuery(
-        {idUser, idAthlete},
-        {enabled: Boolean(idUser && idAthlete)}
-    );
-
-    const updateAthleteMutation = api.user.updateAthlete.useMutation({
-        onSuccess: () => {
-            utils.user.getAthleteInfo.invalidate({idUser, idAthlete});
-            setIsEditing(false);
-            setSuccessMessage(true);
-            setTimeout(() => setSuccessMessage(false), 3000);
-        },
-    });
-
-    const athleteData = (responseData as any)?.athlete || responseData;
+    const [generalError, setGeneralError] = useState<string | null>(null);
+    const utils = api.useUtils();
 
     const [formData, setFormData] = useState({
         name: "",
         surname: "",
+        gender: "",
         dateOfBirth: "",
         expirationMedicalCertificate: "",
         homeAddress: "",
@@ -62,59 +49,69 @@ export const AthleteInfo = ({idUser, idAthlete, emailUser}: AthleteInfoProps) =>
         countryBirthPlace: "",
     });
 
-    useEffect(() => {
-        if (athleteData) {
-            setFormData({
-                name: athleteData.name || "",
-                surname: athleteData.surname || "",
-                dateOfBirth: athleteData.dateOfBirth ? new Date(athleteData.dateOfBirth).toISOString().split('T')[0] : "",
-                expirationMedicalCertificate: athleteData.expirationMedicalCertificate ? new Date(athleteData.expirationMedicalCertificate).toISOString().split('T')[0] : "",
-                homeAddress: athleteData.homeAddress || "",
-                nin: athleteData.nin || "",
-                birthPlace: athleteData.birthPlace || "",
-                countryBirthPlace: athleteData.countryBirthPlace || "",
-            });
-        }
-    }, [athleteData]);
+    const isFormValid =
+        Boolean(formData.name.trim()) &&
+        Boolean(formData.surname.trim()) &&
+        Boolean(formData.gender) &&
+        Boolean(formData.dateOfBirth.trim()) &&
+        Boolean(formData.homeAddress.trim()) &&
+        Boolean(formData.nin.trim()) &&
+        Boolean(formData.birthPlace.trim()) &&
+        Boolean(formData.countryBirthPlace.trim()) &&
+        !cfError;
 
-    const validateCF = (cfValue: string, currentForm = formData) => {
-        if (!cfValue) {
+    const createAthleteMutation = api.user.addAthletesToUser.useMutation({
+        onSuccess: async (data: any) => {
+            const createdAthleteId = data?.id || data?.idAthlete || data?.athlete?.id;
+            setIsCreated(true);
+            setSuccessMessage(true);
+            if (createdAthleteId) setIdAthlete(createdAthleteId);
+            if (onCreated) onCreated(createdAthleteId);
+            await utils.user.getAllAthletes.invalidate({
+                idUser
+            });
+            setTimeout(() => setSuccessMessage(false), 4000);
+        },
+        onError: (error) => {
+            setGeneralError(error.message || "Errore durante la creazione.");
+        },
+    });
+
+    const validateCF = (form = formData) => {
+        if (!form.nin) {
             setCfError(null);
             return true;
         }
 
-        const cleanCf = cfValue.trim().toUpperCase();
-
+        const cleanCf = form.nin.trim().toUpperCase();
         if (cleanCf.length !== 16) {
-            setCfError("Il Codice Fiscale deve essere di 16 caratteri.");
+            setCfError("Il CF deve essere di 16 caratteri.");
             return false;
         }
 
-        if (!CodiceFiscale.check(cleanCf)) {
-            setCfError("Formato o carattere di controllo del Codice Fiscale non valido.");
-            return false;
-        }
 
         try {
-            const cfObj = new CodiceFiscale(cleanCf);
-            if (!cfObj.isValid()) {
-                setCfError("Codice Fiscale non valido.");
+            const [y, m, d] = form.dateOfBirth.split("-");
+            const cfCalcolato = new CodiceFiscale({
+                name: form.name,
+                surname: form.surname,
+                gender: form.gender === "M" ? "M" : "F",
+                day: parseInt(d, 10),
+                month: parseInt(m, 10),
+                year: parseInt(y, 10),
+                birthplace: form.birthPlace,
+                birthplaceProvincia: form.countryBirthPlace
+            });
+
+            const calcolato = (cfCalcolato as any).code.toUpperCase().substring(0, 15);
+            const inserito = form.nin.toUpperCase().substring(0, 15);
+
+            if (calcolato !== inserito) {
+                setCfError("Il Codice Fiscale non corrisponde ai dati anagrafici.");
                 return false;
             }
-
-            if (currentForm.dateOfBirth) {
-                const [yearStr, monthStr, dayStr] = currentForm.dateOfBirth.split("-");
-                if (
-                    cfObj.year !== parseInt(yearStr, 10) ||
-                    cfObj.month !== parseInt(monthStr, 10) ||
-                    cfObj.day !== parseInt(dayStr, 10)
-                ) {
-                    setCfError("La data di nascita non corrisponde al Codice Fiscale inserito.");
-                    return false;
-                }
-            }
         } catch {
-            setCfError("Codice Fiscale non valido.");
+            setCfError("Impossibile validare il Codice Fiscale con i dati forniti.");
             return false;
         }
 
@@ -122,312 +119,204 @@ export const AthleteInfo = ({idUser, idAthlete, emailUser}: AthleteInfoProps) =>
         return true;
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const {name, value} = e.target;
-        const updatedValue = name === "nin" || name === "countryBirthPlace" ? value.toUpperCase() : value;
-        const newFormData = {...formData, [name]: updatedValue};
+    const handleChange = (name: string, value: string | null) => {
+        const updatedValue = name === "nin" || name === "countryBirthPlace" ? value?.toUpperCase() : value;
+        const updatedForm = {...formData, [name]: updatedValue};
+        setFormData(updatedForm);
+        validateCF(updatedForm);
+    };
 
-        setFormData(newFormData);
-
-        if (name === "nin" || name === "dateOfBirth") {
-            validateCF(newFormData.nin, newFormData);
-        }
+    const handleClear = () => {
+        setFormData({
+            name: "",
+            surname: "",
+            gender: "",
+            dateOfBirth: "",
+            expirationMedicalCertificate: "",
+            homeAddress: "",
+            nin: "",
+            birthPlace: "",
+            countryBirthPlace: ""
+        });
+        setCfError(null);
+        setGeneralError(null);
     };
 
     const handleSave = () => {
-        if (formData.nin && !validateCF(formData.nin, formData)) {
+        setGeneralError(null);
+        if (!isFormValid) {
+            setGeneralError("Tutti i campi obbligatori devono essere compilati correttamente.");
             return;
         }
+        if (!validateCF(formData)) return;
 
-        updateAthleteMutation.mutate({
+        createAthleteMutation.mutate({
             idUser,
-            idAthlete,
             ...formData,
+            nin: formData.nin.toUpperCase(),
+            countryBirthPlace: formData.countryBirthPlace.toUpperCase()
         });
     };
 
-    const handleCancel = () => {
-        if (athleteData) {
-            setFormData({
-                name: athleteData.name || "",
-                surname: athleteData.surname || "",
-                dateOfBirth: athleteData.dateOfBirth ? new Date(athleteData.dateOfBirth).toISOString().split('T')[0] : "",
-                expirationMedicalCertificate: athleteData.expirationMedicalCertificate ? new Date(athleteData.expirationMedicalCertificate).toISOString().split('T')[0] : "",
-                homeAddress: athleteData.homeAddress || "",
-                nin: athleteData.nin || "",
-                birthPlace: athleteData.birthPlace || "",
-                countryBirthPlace: athleteData.countryBirthPlace || "",
-            });
-        }
-        setCfError(null);
-        setIsEditing(false);
-    };
-
-    if (isTrpcLoading) {
-        return (
-            <Card className=" border-zinc-800 p-8 sm:p-12 text-center text-zinc-400">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-red-600"/>
-                <p className="font-bold tracking-wider uppercase text-xs sm:text-sm">Caricamento scheda atleta...</p>
-            </Card>
-        );
-    }
-
-    if (error) {
-        return (
-            <Card className="bg-zinc-950 border-red-900/40 p-4 sm:p-6 text-red-500 shadow-xl">
-                <div className="flex items-center space-x-3 mb-2">
-                    <ShieldAlert className="h-6 w-6 text-red-500 shrink-0"/>
-                    <h3 className="font-black uppercase tracking-wider text-sm sm:text-base">Errore Caricamento Dati</h3>
-                </div>
-                <p className="text-xs sm:text-sm text-zinc-400">{error.message}</p>
-            </Card>
-        );
-    }
-
     return (
-        <Card className="border border-zinc-800 overflow-hidden p-0 shadow-2xl rounded-2xl relative w-full">
-            <div className="relative h-24 sm:h-32 bg-linear-to-r from-red-900 via-red-800 to-red-700 border-b border-red-600/30 overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(220,38,38,0.35),transparent_60%)]"/>
-            </div>
-
-            <CardContent className="p-4 sm:p-6 pt-0 relative">
-                <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-4 -mt-10 sm:-mt-12 mb-6 sm:mb-8 text-center sm:text-left">
-                    <div className="flex flex-col sm:flex-row items-center sm:items-end space-y-3 sm:space-y-0 sm:space-x-4">
-                        <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-zinc-950 border-2 border-red-600 flex items-center justify-center text-amber-400 font-black text-2xl sm:text-3xl shadow-2xl shadow-red-600/20 shrink-0">
-                            {formData.name?.[0]?.toUpperCase() || "B"}
-                            {formData.surname?.[0]?.toUpperCase() || "B"}
+        <Card className="border border-zinc-200 bg-white p-0 shadow-lg rounded-3xl relative w-full overflow-hidden">
+            <div className="h-3 bg-gradient-to-r from-red-700 via-red-600 to-red-700"/>
+            <CardContent className="p-4 sm:p-6 lg:p-8">
+                <div
+                    className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8 pb-6 border-b border-zinc-100">
+                    <div
+                        className="flex flex-col sm:flex-row items-center sm:items-start lg:items-center gap-4 sm:gap-5 w-full lg:w-auto text-center sm:text-left">
+                        <div className="bg-zinc-100 p-4 rounded-full border border-zinc-200 shrink-0">
+                            <UserCircle className="w-12 h-12 sm:w-16 sm:h-16 text-red-600"/>
                         </div>
-                        <div className="mb-0 sm:mb-1">
-                            <h2 className="text-xl sm:text-2xl font-black uppercase tracking-widest leading-tight">
-                                {formData.name || "Atleta"} {formData.surname || ""}
+                        <div className="w-full overflow-hidden">
+                            <p className="text-xs sm:text-sm font-medium text-zinc-500 uppercase tracking-wider">Nuovo
+                                Tesseramento</p>
+                            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-zinc-950 tracking-tight truncate">
+                                Registrazione Atleta
                             </h2>
-                            <p className="text-[11px] sm:text-xs text-zinc-400 font-semibold tracking-wider uppercase flex items-center justify-center sm:justify-start gap-1.5 mt-0.5">
-                                <span className="h-2 w-2 rounded-full bg-red-600 animate-pulse"/>
-                                Atleta
-                            </p>
                         </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto shrink-0">
                         {successMessage && (
-                            <span className="flex items-center justify-center text-xs font-bold text-green-400 bg-green-950/60 border border-green-700/60 px-3 py-2 rounded-xl backdrop-blur-md w-full sm:w-auto">
-                                <CheckCircle2 className="h-4 w-4 mr-1.5 text-green-400 shrink-0"/> Modifica salvata con successo
-                            </span>
+                            <div
+                                className="flex items-center text-xs sm:text-sm font-medium text-green-700 bg-green-50 px-4 py-2.5 rounded-xl border border-green-200 w-full sm:w-auto justify-center">
+                                <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-green-500 shrink-0"/> Salvato
+                            </div>
                         )}
-
-                        {updateAthleteMutation.isError && (
-                            <span className="flex items-center justify-center text-xs font-bold text-red-400 bg-red-950/60 border border-red-700/60 px-3 py-2 rounded-xl backdrop-blur-md w-full sm:w-auto">
-                                <ShieldAlert className="h-4 w-4 mr-1.5 text-red-400 shrink-0"/> {updateAthleteMutation.error.message}
-                            </span>
-                        )}
-
-                        {!isEditing ? (
-                            <Button
-                                onClick={() => setIsEditing(true)}
-                                className="w-full sm:w-auto cursor-pointer bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-wider px-5 py-2.5 rounded-xl shadow-lg shadow-red-600/25 transition-all"
-                            >
-                                <Pencil className="mr-2 h-4 w-4"/> Modifica Anagrafica
-                            </Button>
-                        ) : (
-                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                        {!isCreated ? (
+                            <div className="flex items-center gap-3 w-full sm:w-auto">
                                 <Button
-                                    onClick={handleCancel}
+                                    onClick={handleClear}
                                     variant="outline"
-                                    disabled={updateAthleteMutation.isPending}
-                                    className="flex-1 sm:flex-none cursor-pointer border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs font-bold uppercase rounded-xl"
+                                    className="flex-1 sm:flex-none border-zinc-200 text-zinc-700 hover:bg-zinc-100 py-4 sm:py-5 rounded-xl text-xs sm:text-sm uppercase tracking-wider"
                                 >
-                                    <X className="mr-1.5 h-4 w-4"/> Annulla
+                                    Annulla
                                 </Button>
                                 <Button
                                     onClick={handleSave}
-                                    disabled={Boolean(cfError) || updateAthleteMutation.isPending}
-                                    className="flex-1 sm:flex-none cursor-pointer bg-green-600 hover:bg-green-700 text-white font-extrabold text-xs uppercase tracking-wider px-5 rounded-xl shadow-lg shadow-green-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={!isFormValid || createAthleteMutation.isPending}
+                                    className="flex-1 sm:flex-none bg-red-600 hover:bg-red-700 text-white font-semibold py-4 sm:py-5 px-6 rounded-xl shadow-sm disabled:opacity-60 text-xs sm:text-sm uppercase tracking-wider"
                                 >
-                                    {updateAthleteMutation.isPending ? (
-                                        <Loader2 className="mr-1.5 h-4 w-4 animate-spin"/>
-                                    ) : (
-                                        <Save className="mr-1.5 h-4 w-4"/>
-                                    )}
-                                    Salva
+                                    {createAthleteMutation.isPending ?
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/> :
+                                        <UserPlus className="mr-2 h-4 w-4"/>}
+                                    Registra
                                 </Button>
+                            </div>
+                        ) : (
+                            <div
+                                className="text-xs sm:text-sm font-bold text-zinc-900 bg-zinc-100 px-6 py-4 rounded-xl border w-full sm:w-auto text-center">
+                                Registrato correttamente
                             </div>
                         )}
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4">
-                    <Card className="p-3.5 sm:p-4 rounded-xl border border-zinc-800/80 hover:border-zinc-700 transition-colors">
-                        <div className="flex items-center space-x-2.5 text-zinc-400 mb-1.5">
-                            <User className="h-4 w-4 text-red-500 shrink-0"/>
-                            <Label htmlFor="name" className="text-zinc-400 uppercase text-[11px] font-bold tracking-wider cursor-pointer">Nome</Label>
-                        </div>
-                        {isEditing ? (
-                            <Input
-                                id="name"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                className="border-zinc-700 focus:border-red-600 font-medium h-10 rounded-lg text-sm"
-                            />
-                        ) : (
-                            <p className="text-sm sm:text-base break-words">{formData.name || "N/D"}</p>
-                        )}
-                    </Card>
+                {generalError && (
+                    <div
+                        className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 text-xs sm:text-sm font-medium flex items-center gap-2">
+                        <ShieldAlert className="h-4 w-4 shrink-0 text-red-600"/>
+                        {generalError}
+                    </div>
+                )}
 
-                    <Card className="p-3.5 sm:p-4 rounded-xl border border-zinc-800/80 hover:border-zinc-700 transition-colors">
-                        <div className="flex items-center space-x-2.5 text-zinc-400 mb-1.5">
-                            <Contact className="h-4 w-4 text-red-500 shrink-0"/>
-                            <Label htmlFor="surname" className="text-zinc-400 uppercase text-[11px] font-bold tracking-wider cursor-pointer">Cognome</Label>
-                        </div>
-                        {isEditing ? (
-                            <Input
-                                id="surname"
-                                name="surname"
-                                value={formData.surname}
-                                onChange={handleChange}
-                                className="border-zinc-700 focus:border-red-600 font-medium h-10 rounded-lg text-sm"
-                            />
-                        ) : (
-                            <p className="text-sm sm:text-base break-words">{formData.surname || "N/D"}</p>
-                        )}
-                    </Card>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div
+                        className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 bg-zinc-50/50 p-4 sm:p-6 rounded-2xl border border-zinc-100">
+                        <h3 className="sm:col-span-2 text-base sm:text-lg font-bold text-zinc-900 mb-1 border-l-4 border-red-600 pl-3">Dati
+                            Anagrafici</h3>
+                        <Field icon={User} label="Nome *" id="name" value={formData.name}
+                               onChange={(e: any) => handleChange("name", e.target.value)}/>
+                        <Field icon={Contact} label="Cognome *" id="surname" value={formData.surname}
+                               onChange={(e: any) => handleChange("surname", e.target.value)}/>
 
-                    <Card className="p-3.5 sm:p-4 rounded-xl border border-zinc-800/80 hover:border-zinc-700 transition-colors">
-                        <div className="flex items-center space-x-2.5 text-zinc-400 mb-1.5">
-                            <Calendar className="h-4 w-4 text-red-500 shrink-0"/>
-                            <Label htmlFor="dateOfBirth" className="text-zinc-400 uppercase text-[11px] font-bold tracking-wider cursor-pointer">Data di Nascita</Label>
+                        <div className="space-y-1.5 w-full">
+                            <Label htmlFor="gender"
+                                   className="text-zinc-500 text-xs font-medium flex items-center gap-2 pl-1 cursor-pointer">
+                                <UserCircle className="h-3.5 w-3.5 shrink-0 text-red-600"/>
+                                Sesso *
+                            </Label>
+                            <Select value={formData.gender} onValueChange={(v) => handleChange("gender", v)}>
+                                <SelectTrigger
+                                    className="bg-white border-zinc-200 focus:border-red-500 focus:ring-0 font-medium h-11 rounded-xl text-sm text-zinc-900 w-full">
+                                    <SelectValue placeholder="Seleziona sesso..."/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="M">Maschio</SelectItem>
+                                    <SelectItem value="F">Femmina</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
-                        {isEditing ? (
-                            <Input
-                                id="dateOfBirth"
-                                name="dateOfBirth"
-                                type="date"
-                                value={formData.dateOfBirth}
-                                onChange={handleChange}
-                                className="border-zinc-700 focus:border-red-600 font-medium h-10 rounded-lg text-sm"
-                            />
-                        ) : (
-                            <p className="text-sm sm:text-base">
-                                {formData.dateOfBirth ? new Date(formData.dateOfBirth).toLocaleDateString('it-IT') : "N/D"}
-                            </p>
-                        )}
-                    </Card>
 
-                    <Card className="p-3.5 sm:p-4 rounded-xl border border-zinc-800/80 hover:border-zinc-700 transition-colors">
-                        <div className="flex items-center space-x-2.5 text-zinc-400 mb-1.5">
-                            <Calendar className="h-4 w-4 text-red-500 shrink-0"/>
-                            <Label htmlFor="expirationMedicalCertificate" className="text-zinc-400 uppercase text-[11px] font-bold tracking-wider cursor-pointer">Scadenza Certificato Medico</Label>
-                        </div>
-                        {isEditing ? (
-                            <Input
-                                id="expirationMedicalCertificate"
-                                name="expirationMedicalCertificate"
-                                type="date"
-                                value={formData.expirationMedicalCertificate}
-                                onChange={handleChange}
-                                className="border-zinc-700 focus:border-red-600 font-medium h-10 rounded-lg text-sm"
-                            />
-                        ) : (
-                            <p className="text-sm sm:text-base flex items-center gap-2">
-                                {formData.expirationMedicalCertificate ? new Date(formData.expirationMedicalCertificate).toLocaleDateString('it-IT') : "N/D"}
-                            </p>
-                        )}
-                    </Card>
+                        <Field icon={Calendar} label="Data di Nascita *" id="dateOfBirth" value={formData.dateOfBirth}
+                               onChange={(e: any) => handleChange("dateOfBirth", e.target.value)} type="date"/>
+                        <Field icon={CreditCard} label="Codice Fiscale *" id="nin" value={formData.nin}
+                               onChange={(e: any) => handleChange("nin", e.target.value)} error={cfError} maxLength={16}
+                               className="sm:col-span-2"/>
+                    </div>
 
-                    <Card className="p-3.5 sm:p-4 rounded-xl border border-zinc-800/80 hover:border-zinc-700 transition-colors">
-                        <div className="flex items-center space-x-2.5 text-zinc-400 mb-1.5">
-                            <CreditCard className="h-4 w-4 text-red-500 shrink-0"/>
-                            <Label htmlFor="nin" className="text-zinc-400 uppercase text-[11px] font-bold tracking-wider cursor-pointer">Codice Fiscale</Label>
-                        </div>
-                        {isEditing ? (
-                            <div>
-                                <Input
-                                    id="nin"
-                                    maxLength={16}
-                                    minLength={16}
-                                    name="nin"
-                                    value={formData.nin}
-                                    onChange={handleChange}
-                                    className={`border-zinc-700 focus:border-red-600 uppercase h-10 rounded-lg tracking-wider text-sm ${
-                                        cfError ? "border-red-500 focus:border-red-500" : ""
-                                    }`}
-                                />
-                                {cfError && (
-                                    <p className="text-red-500 text-xs mt-1.5 font-medium flex items-center gap-1">
-                                        <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
-                                        {cfError}
-                                    </p>
-                                )}
+                    <div className="space-y-4 sm:space-y-6 bg-zinc-50/50 p-4 sm:p-6 rounded-2xl border border-zinc-100">
+                        <h3 className="text-base sm:text-lg font-bold text-zinc-900 mb-1 border-l-4 border-red-600 pl-3">Luogo
+                            di Nascita</h3>
+                        <Field icon={MapPin} label="Comune *" id="birthPlace" value={formData.birthPlace}
+                               onChange={(e: any) => handleChange("birthPlace", e.target.value)}/>
+                        <Field icon={Globe} label="Provincia *" id="countryBirthPlace"
+                               value={formData.countryBirthPlace}
+                               onChange={(e: any) => handleChange("countryBirthPlace", e.target.value)} maxLength={2}/>
+                    </div>
+
+                    <div className="space-y-4 sm:space-y-6 bg-zinc-50/50 p-4 sm:p-6 rounded-2xl border border-zinc-100">
+                        <h3 className="text-base sm:text-lg font-bold text-zinc-900 mb-1 border-l-4 border-red-600 pl-3">Contatti
+                            e Salute</h3>
+                        <Field icon={MapPin} label="Indirizzo *" id="homeAddress" value={formData.homeAddress}
+                               onChange={(e: any) => handleChange("homeAddress", e.target.value)}/>
+                        <div className="space-y-1.5 w-full">
+                            <Label className="text-zinc-500 text-xs font-medium flex items-center gap-2 pl-1">
+                                <Mail className="h-3.5 w-3.5 text-zinc-400 shrink-0"/>
+                                Email Genitore / Referente
+                            </Label>
+                            <div
+                                className="bg-white border border-zinc-200 text-zinc-900 px-4 py-3 rounded-xl min-h-[44px] flex items-center font-medium text-sm break-all w-full">
+                                {emailUser?.toUpperCase() || "N/D"}
                             </div>
-                        ) : (
-                            <p className="text-sm sm:text-base uppercase tracking-wider break-all">{formData.nin || "N/D"}</p>
-                        )}
-                    </Card>
-
-                    <Card className="p-3.5 sm:p-4 rounded-xl border border-zinc-800/80 hover:border-zinc-700 transition-colors">
-                        <div className="flex items-center space-x-2.5 text-zinc-400 mb-1.5">
-                            <MapPin className="h-4 w-4 text-red-500 shrink-0"/>
-                            <Label htmlFor="homeAddress" className="text-zinc-400 uppercase text-[11px] font-bold tracking-wider cursor-pointer">Indirizzo di Residenza</Label>
                         </div>
-                        {isEditing ? (
-                            <Input
-                                id="homeAddress"
-                                name="homeAddress"
-                                value={formData.homeAddress}
-                                onChange={handleChange}
-                                className="border-zinc-700 focus:border-red-600 font-medium h-10 rounded-lg text-sm"
-                            />
-                        ) : (
-                            <p className="  text-sm sm:text-base break-words">{formData.homeAddress || "N/D"}</p>
-                        )}
-                    </Card>
-
-                    <Card className="p-3.5 sm:p-4 rounded-xl border border-zinc-800/80 hover:border-zinc-700 transition-colors">
-                        <div className="flex items-center space-x-2.5 text-zinc-400 mb-1.5">
-                            <MapPin className="h-4 w-4 text-red-500 shrink-0"/>
-                            <Label htmlFor="birthplace" className="text-zinc-400 uppercase text-[11px] font-bold tracking-wider cursor-pointer">Luogo di Nascita</Label>
-                        </div>
-                        {isEditing ? (
-                            <Input
-                                id="birthplace"
-                                name="birthPlace"
-                                value={formData.birthPlace}
-                                onChange={handleChange}
-                                className="border-zinc-700 focus:border-red-600 font-medium h-10 rounded-lg text-sm"
-                            />
-                        ) : (
-                            <p className="text-sm sm:text-base break-words">{formData.birthPlace || "N/D"}</p>
-                        )}
-                    </Card>
-
-                    <Card className="p-3.5 sm:p-4 rounded-xl border border-zinc-800/80 hover:border-zinc-700 transition-colors">
-                        <div className="flex items-center space-x-2.5 text-zinc-400 mb-1.5">
-                            <Globe className="h-4 w-4 text-red-500 shrink-0"/>
-                            <Label htmlFor="countryBirthPlace" className="text-zinc-400 uppercase text-[11px] font-bold tracking-wider cursor-pointer">Provincia di Nascita</Label>
-                        </div>
-                        {isEditing ? (
-                            <Input
-                                id="countryBirthPlace"
-                                name="countryBirthPlace"
-                                maxLength={2}
-                                value={formData.countryBirthPlace}
-                                onChange={handleChange}
-                                className="border-zinc-700 focus:border-red-600 font-medium h-10 rounded-lg text-sm"
-                            />
-                        ) : (
-                            <p className="text-sm sm:text-base uppercase">{formData.countryBirthPlace || "N/D"}</p>
-                        )}
-                    </Card>
-
-                    <Card className="p-3.5 sm:p-4 rounded-xl border border-zinc-800/80 hover:border-zinc-700 transition-colors sm:col-span-2">
-                        <div className="flex items-center space-x-2.5 text-zinc-400 mb-1.5">
-                            <Mail className="h-4 w-4 text-red-500 shrink-0"/>
-                            <span className="text-zinc-400 uppercase text-[11px] font-bold tracking-wider">Email Genitore / Referente</span>
-                        </div>
-                        <p className="text-sm sm:text-base break-all">{emailUser || "N/D"}</p>
-                    </Card>
+                        <Field icon={Calendar} label="Scadenza Certificato" id="expirationMedicalCertificate"
+                               value={formData.expirationMedicalCertificate}
+                               onChange={(e: any) => handleChange("expirationMedicalCertificate", e.target.value)}
+                               type="date"/>
+                    </div>
                 </div>
             </CardContent>
         </Card>
     );
 };
+
+const Field = ({icon: Icon, label, id, value, onChange, type = "text", error, maxLength, className = ""}: any) => (
+    <div className={`space-y-1.5 w-full ${className}`}>
+        <Label htmlFor={id} className="text-zinc-500 text-xs font-medium flex items-center gap-2 pl-1 cursor-pointer">
+            <Icon className="h-3.5 w-3.5 shrink-0 text-red-600"/>
+            {label}
+        </Label>
+        <div className="w-full">
+            <Input
+                id={id}
+                name={id}
+                type={type}
+                value={value}
+                onChange={onChange}
+                maxLength={maxLength}
+                className={`bg-white border-zinc-200 focus:border-red-500 focus:ring-0 font-medium h-11 rounded-xl text-sm text-zinc-900 w-full uppercase ${
+                    error ? "border-red-500 focus:border-red-500" : ""
+                }`}
+            />
+            {error && (
+                <p className="text-red-600 text-xs mt-1.5 font-medium flex items-center gap-1">
+                    <ShieldAlert className="h-3.5 w-3.5 shrink-0"/>
+                    {error}
+                </p>
+            )}
+        </div>
+    </div>
+);

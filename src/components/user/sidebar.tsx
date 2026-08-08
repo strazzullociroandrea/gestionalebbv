@@ -12,7 +12,6 @@ import {
     SidebarMenuItem,
     SidebarMenuSub,
     SidebarMenuSubItem,
-    SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 import {
     User,
@@ -20,7 +19,9 @@ import {
     ShieldCheck,
     Users,
     ChevronRight,
-    Plus
+    Plus,
+    Trophy,
+    Home,
 } from "lucide-react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
@@ -41,98 +42,97 @@ export const SidebarUser = ({ role }: { role: string }) => {
         { enabled: !!session?.user?.id }
     );
 
-    if (!session || isPending) {
-        return null;
-    }
+    if (!session || isPending) return null;
 
     const handleLogout = async () => {
         await authClient.signOut();
         router.push("/authenticate");
     };
 
+    const isAthletesActive = pathname.startsWith("/athletes");
+
     return (
-        <Sidebar className="border-r border-sidebar-border/70 bg-sidebar">
-            <SidebarHeader className="gap-3 border-b border-sidebar-border/60 px-4 py-4">
-                <div className="flex items-center gap-3">
-                    <div className="flex size-11 items-center justify-center rounded-2xl bg-red-500 text-primary-foreground shadow-xs shadow-primary/20">
-                        <ShieldCheck className="size-5" />
+        <Sidebar className="bg-white border-r border-zinc-200 shadow-sm" collapsible="icon">
+            <SidebarHeader className="border-b border-zinc-100 p-4">
+                <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-zinc-950 text-white shadow-md">
+                        <Trophy className="size-5 text-red-600"/>
                     </div>
-                    <div className="min-w-0">
-                        <h1 className="truncate text-lg font-bold tracking-tight">
-                            Gestionale BBV
+                    <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+                        <h1 className="text-sm font-black uppercase tracking-wider text-zinc-950 truncate">
+                            BBV <span className="text-red-600">Gestionale</span>
                         </h1>
-                        <p className="text-xs text-sidebar-foreground/65">
-                            Area utente
-                        </p>
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate">Area Utente</p>
                     </div>
                 </div>
             </SidebarHeader>
 
-            <SidebarContent className="px-2 py-3">
-                <SidebarGroup className="px-3">
-                    <SidebarGroupLabel className="px-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-sidebar-foreground/50">
-                        Menù
+            <SidebarContent className="p-3">
+                <SidebarGroup className="p-0 mb-4">
+                    <SidebarGroupLabel className="px-2 mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 group-data-[collapsible=icon]:hidden">
+                        Home
                     </SidebarGroupLabel>
-                    <SidebarMenu className="px-1 space-y-1">
-
+                    <SidebarMenu>
                         <SidebarMenuItem>
-                            <Collapsible
-                                open={open}
-                                onOpenChange={setOpen}
-                                className="group/collapsible w-full"
-                            >
-                                <CollapsibleTrigger  className="w-full">
+                            <SidebarMenuButton  size="lg" className={cn(
+                                "w-full rounded-xl transition-all font-bold",
+                                pathname === "/" ? "bg-zinc-100 text-zinc-950 shadow-2xs" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
+                            )}>
+                                <Link href="/" className="flex items-center gap-3 w-full">
+                                    <Home className="size-4 text-red-600 shrink-0"/>
+                                    <span className="truncate group-data-[collapsible=icon]:hidden">Home</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </SidebarGroup>
+
+                <SidebarGroup className="p-0">
+                    <SidebarGroupLabel className="px-2 mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 group-data-[collapsible=icon]:hidden">
+                        Anagrafiche
+                    </SidebarGroupLabel>
+                    <SidebarMenu className="space-y-1">
+                        <SidebarMenuItem>
+                            <Collapsible open={open} onOpenChange={setOpen}>
+                                <CollapsibleTrigger >
                                     <SidebarMenuButton
                                         size="lg"
-                                        className="cursor-pointer w-full flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                                        className={cn(
+                                            "w-full rounded-xl px-3 transition-all font-bold flex items-center justify-between cursor-pointer",
+                                            isAthletesActive
+                                                ? "bg-zinc-100 text-zinc-950 shadow-2xs"
+                                                : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950"
+                                        )}
                                     >
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <Users className="size-4 shrink-0" />
-                                            <span className="truncate">Atleti</span>
+                                            <Users className="size-4 text-red-600 shrink-0"/>
+                                            <span className="truncate group-data-[collapsible=icon]:hidden">Gestione Atleti</span>
                                         </div>
-                                        <ChevronRight
-                                            className={cn(
-                                                "size-4 shrink-0 transition-transform duration-200",
-                                                open && "rotate-90"
-                                            )}
-                                        />
+                                        <ChevronRight className={cn("size-4 transition-transform text-zinc-400 shrink-0 group-data-[collapsible=icon]:hidden", open && "rotate-90")}/>
                                     </SidebarMenuButton>
                                 </CollapsibleTrigger>
-                                <CollapsibleContent>
-                                    <SidebarMenuSub className="ml-4 border-l border-sidebar-border/60 pl-2 space-y-1 my-1">
-                                        {athletes.map((athlete) => (
-                                            <SidebarMenuSubItem key={athlete.id}>
-                                                <SidebarMenuSubButton  className="rounded-xl p-0 w-full">
-                                                    <Link
-                                                        href={`/athletes/${athlete.id}`}
-                                                        className={cn(
-                                                            "w-full px-3 py-2 rounded-xl transition-all block truncate",
-                                                            pathname === `/athletes/${athlete.id}`
-                                                                ? "bg-red-300 text-black font-medium"
-                                                                : "text-sidebar-foreground/70 hover:text-sidebar-accent-foreground"
-                                                        )}
-                                                    >
-                                                        <span>{athlete.name} {athlete.surname}</span>
+                                <CollapsibleContent className="group-data-[collapsible=icon]:hidden">
+                                    <SidebarMenuSub className="ml-4 border-l border-zinc-200 pl-3 space-y-1 mt-1">
+                                        {athletes.map((athlete) => {
+                                            const isAthleteActive = pathname === `/athletes/${athlete.id}`;
+                                            return (
+                                                <SidebarMenuSubItem key={athlete.id}>
+                                                    <Link href={`/athletes/${athlete.id}`} className={cn(
+                                                        "block w-full px-3 py-2 text-xs font-semibold rounded-lg transition-colors truncate",
+                                                        isAthleteActive ? "bg-red-50 text-red-700 font-bold" : "text-zinc-500 hover:text-zinc-900"
+                                                    )}>
+                                                        {athlete.name} {athlete.surname}
                                                     </Link>
-                                                </SidebarMenuSubButton>
-                                            </SidebarMenuSubItem>
-                                        ))}
-
+                                                </SidebarMenuSubItem>
+                                            );
+                                        })}
                                         <SidebarMenuSubItem>
-                                            <SidebarMenuSubButton  className="rounded-xl p-0 w-full">
-                                                <Link
-                                                    href="/athletes/add"
-                                                    className={cn(
-                                                        "w-full flex items-center gap-2 px-3 py-2 rounded-xl transition-all",
-                                                        pathname === "/athletes/add"
-                                                            ? "bg-red-300 text-black font-medium"
-                                                            : "text-sidebar-foreground/70 hover:text-sidebar-accent-foreground"
-                                                    )}
-                                                >
-                                                    <Plus className="size-4 shrink-0" />
-                                                    <span>Aggiungi Atleta</span>
-                                                </Link>
-                                            </SidebarMenuSubButton>
+                                            <Link href="/athletes/add" className={cn(
+                                                "flex items-center gap-2 px-3 py-2 text-xs font-black rounded-lg uppercase tracking-wider transition-colors truncate",
+                                                pathname === "/athletes/add" ? "bg-red-50 text-red-700" : "text-red-600 hover:bg-red-50"
+                                            )}>
+                                                <Plus className="size-3 shrink-0"/> <span className="truncate">Aggiungi Atleta</span>
+                                            </Link>
                                         </SidebarMenuSubItem>
                                     </SidebarMenuSub>
                                 </CollapsibleContent>
@@ -140,48 +140,35 @@ export const SidebarUser = ({ role }: { role: string }) => {
                         </SidebarMenuItem>
 
                         <SidebarMenuItem>
-                            <SidebarMenuButton  size="lg" className="rounded-2xl p-0 text-sm font-medium w-full">
-                                <Link
-                                    href="/anagraphic"
-                                    className={cn(
-                                        "flex items-center gap-3 rounded-2xl px-4 py-2.5 transition-all w-full",
-                                        pathname === "/anagraphic"
-                                            ? "bg-red-300 text-black shadow-md shadow-primary/15"
-                                            : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                                    )}
-                                >
-                                    <User className="size-4 shrink-0" />
-                                    <span>Anagrafica</span>
+                            <SidebarMenuButton  size="lg" className={cn(
+                                "w-full rounded-xl transition-all font-bold",
+                                pathname === "/anagraphic" ? "bg-zinc-100 text-zinc-950 shadow-2xs" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
+                            )}>
+                                <Link href="/anagraphic" className="flex items-center gap-3 w-full">
+                                    <User className="size-4 text-red-600 shrink-0"/>
+                                    <span className="truncate group-data-[collapsible=icon]:hidden">Profilo Personale</span>
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
-
                     </SidebarMenu>
                 </SidebarGroup>
             </SidebarContent>
 
-            <SidebarFooter className="gap-3 border-t border-sidebar-border/60 p-3">
-                <div className="flex items-center justify-between gap-3 rounded-2xl border border-sidebar-border/70 bg-sidebar-accent/40 px-4 py-3 shadow-sm">
-                    <span className="flex min-w-0 items-center gap-3">
-                        <span className="flex size-9 items-center justify-center rounded-full bg-muted-foreground/10 text-primary shrink-0">
-                            <User className="h-4 w-4" />
-                        </span>
-                        <span className="flex min-w-0 flex-col">
-                            <span className="truncate text-sm font-semibold text-sidebar-foreground">
-                                {session?.user.name || session?.user.email}
-                            </span>
-                            <span className="text-[10px] uppercase tracking-[0.22em] text-sidebar-foreground/50">
-                                {role}
-                            </span>
-                        </span>
-                    </span>
+            <SidebarFooter className="p-3 border-t border-zinc-100">
+                <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-zinc-50 border border-zinc-200/60 overflow-hidden group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:justify-center">
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-white border border-zinc-200 shadow-2xs">
+                        <ShieldCheck className="size-4 text-red-600"/>
+                    </div>
+                    <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+                        <p className="truncate text-xs font-black text-zinc-950">{session?.user.name}</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-red-600 truncate">{role}</p>
+                    </div>
                     <button
                         onClick={handleLogout}
-                        className="cursor-pointer rounded-full p-2 text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground focus:outline-none shrink-0"
-                        aria-label="Logout"
-                        type="button"
+                        className="cursor-pointer p-2 text-zinc-400 hover:text-red-600 hover:bg-white rounded-lg transition-colors shrink-0 group-data-[collapsible=icon]:hidden"
+                        title="Logout"
                     >
-                        <LogOut className="h-5 w-5" />
+                        <LogOut className="size-4"/>
                     </button>
                 </div>
             </SidebarFooter>

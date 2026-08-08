@@ -30,7 +30,7 @@ export default function AthletePage() {
     if (isSessionLoading) {
         return (
             <div className="w-full max-w-5xl mx-auto p-6 text-center text-zinc-400">
-                <p className="animate-pulse font-semibold">Caricamento sessione in corso...</p>
+                <p className="animate-pulse font-semibold">Caricamento in corso...</p>
             </div>
         );
     }

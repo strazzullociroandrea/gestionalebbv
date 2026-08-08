@@ -43,6 +43,7 @@ export const User = sqliteTable('User', {
     id: text().primaryKey(),
     name: text().notNull(),
     surname: text().notNull(),
+    phoneNumber: text(),
     email: text().unique().notNull(),
     emailVerified: integer({mode: 'boolean'}).notNull().default(true),
     image: text(),

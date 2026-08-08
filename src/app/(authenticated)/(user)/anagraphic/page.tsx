@@ -1,130 +1,352 @@
 "use client";
 
+import {useState, useEffect} from "react";
 import {authClient} from "@/lib/auth-client";
-import {User, Mail, Contact} from "lucide-react";
+import {
+    User,
+    Mail,
+    Contact,
+    ShieldCheck,
+    Pencil,
+    Save,
+    X,
+    Loader2,
+    CheckCircle2,
+    ShieldAlert,
+    Phone,
+    Lock,
+    UserCircle
+} from "lucide-react";
 import {Card, CardContent} from "@/components/ui/card";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {api} from "@/lib/api";
 
 export default function AnagraphicPage() {
-    const {data: session, isPending} = authClient.useSession();
+    const {data: session, isPending: isSessionLoading} = authClient.useSession();
     const user = session?.user as any;
+    const utils = api.useUtils();
 
-    const getInitials = () => {
-        if (!user) return "BB";
-        const nameInitial = user.name ? user.name.charAt(0).toUpperCase() : "";
-        const surnameInitial = user.surname ? user.surname.charAt(0).toUpperCase() : "";
-        return `${nameInitial}${surnameInitial}` || "BB";
+    const [isEditing, setIsEditing] = useState(false);
+    const [successMessage, setSuccessMessage] = useState(false);
+    const [generalError, setGeneralError] = useState<string | null>(null);
+
+    const [formData, setFormData] = useState({
+        name: "",
+        surname: "",
+        phoneNumber: "",
+        currentPassword: "",
+        newPassword: "",
+    });
+
+    const updateUserMutation = api.user.updateUserProfile.useMutation({
+        onSuccess: async () => {
+            await authClient.getSession();
+            utils.invalidate();
+            setIsEditing(false);
+            setSuccessMessage(true);
+            setGeneralError(null);
+            setFormData(prev => ({...prev, currentPassword: "", newPassword: ""}));
+            setTimeout(() => setSuccessMessage(false), 4000);
+        },
+        onError: (error) => {
+            setGeneralError(error.message || "Errore durante il salvataggio dei dati.");
+        },
+    });
+
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                name: user.name || "",
+                surname: user.surname || "",
+                phoneNumber: user.phoneNumber || "",
+                currentPassword: "",
+                newPassword: "",
+            });
+        }
+    }, [user]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const {name, value} = e.target;
+        setFormData(prev => ({...prev, [name]: value}));
     };
 
+    const handleSave = async () => {
+        setGeneralError(null);
+
+        if (!formData.name.trim() || !formData.surname.trim()) {
+            setGeneralError("Nome e cognome sono obbligatori.");
+            return;
+        }
+
+        if (formData.newPassword && !formData.currentPassword) {
+            setGeneralError("Inserisci la password attuale per poterla modificare.");
+            return;
+        }
+
+        if (formData.newPassword) {
+            const {error: passwordError} = await authClient.changePassword({
+                currentPassword: formData.currentPassword,
+                newPassword: formData.newPassword,
+                revokeOtherSessions: true,
+            });
+
+            if (passwordError) {
+                setGeneralError(passwordError.message || "Errore durante il cambio password.");
+                return;
+            }
+        }
+
+        updateUserMutation.mutate({
+            userId: user?.id,
+            name: formData.name,
+            surname: formData.surname,
+            email: user?.email,
+            phoneNumber: formData.phoneNumber,
+        });
+    };
+
+    const handleCancel = () => {
+        if (user) {
+            setFormData({
+                name: user.name || "",
+                surname: user.surname || "",
+                phoneNumber: user.phoneNumber || "",
+                currentPassword: "",
+                newPassword: "",
+            });
+        }
+        setGeneralError(null);
+        setIsEditing(false);
+    };
+
+    if (isSessionLoading) {
+        return (
+            <div className="w-full max-w-5xl mx-auto p-10 flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <Loader2 className="w-10 h-10 text-red-600 animate-spin"/>
+                <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Caricamento profilo...</p>
+            </div>
+        );
+    }
+
     return (
-        <div
-            className="w-full max-w-7xl mx-auto p-3 sm:p-6 md:p-8 space-y-4 sm:space-y-6 md:space-y-8 animate-in fade-in duration-500">
-            <div
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 border-b border-zinc-800/20 pb-4 sm:pb-6">
-                <div>
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-zinc-900 uppercase">
-                        La tua anagrafica
+        <div className="w-full max-w-5xl mx-auto p-4 sm:p-6 lg:p-10 space-y-8 animate-in fade-in duration-500">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="flex flex-col gap-1">
+                    <h1 className="text-3xl lg:text-4xl font-extrabold text-zinc-950 tracking-tight">
+                        Profilo Personale
                     </h1>
-                    <p className="text-xs sm:text-sm text-zinc-500 mt-0.5 sm:mt-1">
-                        Gestisci le informazioni personali e l'anagrafica del tuo account.
+                    <p className="text-zinc-500 font-medium">
+                        Gestisci le informazioni del tuo account e le preferenze di sicurezza.
                     </p>
+                </div>
+
+                <div className="w-full sm:w-auto flex items-center gap-3">
+                    {successMessage && (
+                        <div
+                            className="flex items-center text-xs sm:text-sm font-medium text-green-700 bg-green-50 px-4 py-2.5 rounded-xl border border-green-200">
+                            <CheckCircle2 className="h-4 w-4 mr-2 text-green-500 shrink-0"/> Salvato con successo
+                        </div>
+                    )}
+                    {!isEditing ? (
+                        <Button
+                            onClick={() => setIsEditing(true)}
+                            className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-5 rounded-xl shadow-sm transition-colors text-xs uppercase tracking-wider"
+                        >
+                            <Pencil className="mr-2 h-4 w-4"/> Modifica Profilo
+                        </Button>
+                    ) : (
+                        <div className="flex items-center gap-3 w-full sm:w-auto">
+                            <Button
+                                onClick={handleCancel}
+                                variant="outline"
+                                disabled={updateUserMutation.isPending}
+                                className="flex-1 sm:flex-none border-zinc-200 text-zinc-700 hover:bg-zinc-100 py-5 rounded-xl text-xs uppercase tracking-wider font-bold"
+                            >
+                                <X className="mr-2 h-4 w-4"/> Annulla
+                            </Button>
+                            <Button
+                                onClick={handleSave}
+                                disabled={updateUserMutation.isPending}
+                                className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white font-bold py-5 px-6 rounded-xl shadow-sm disabled:opacity-60 text-xs uppercase tracking-wider"
+                            >
+                                {updateUserMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> :
+                                    <Save className="mr-2 h-4 w-4"/>}
+                                Salva
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            <Card
-                className="rounded-xl sm:rounded-2xl border border-zinc-200/90 shadow-lg overflow-hidden bg-white p-0">
-                <div className="relative h-28 sm:h-36 md:h-40 w-full bg-zinc-950 overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-900 to-red-900/80"/>
-                    <div
-                        className="absolute -top-16 -right-16 w-48 sm:w-64 h-48 sm:h-64 bg-red-600/20 rounded-full blur-3xl pointer-events-none"/>
-                    <div
-                        className="absolute top-0 right-10 w-24 sm:w-32 h-24 sm:h-32 bg-amber-400/10 rounded-full blur-2xl pointer-events-none"/>
-                    <div
-                        className="absolute inset-0 opacity-10 bg-[radial-gradient(#e11d48_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"/>
-                    <div
-                        className="absolute bottom-0 inset-x-0 h-1 bg-gradient-to-r from-red-600 via-amber-400 to-red-600"/>
+            {generalError && (
+                <div
+                    className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 text-xs sm:text-sm font-medium flex items-center gap-2">
+                    <ShieldAlert className="h-4 w-4 shrink-0 text-red-600"/>
+                    {generalError}
                 </div>
+            )}
 
-                <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6 pt-0 relative">
-                    <div className="-mt-10 sm:-mt-12 md:-mt-14 mb-4 sm:mb-6 flex items-end justify-between gap-3">
-                        <div className="relative shrink-0">
-                            {user?.image ? (
-                                <img
-                                    src={user.image}
-                                    alt={user.name || "User Avatar"}
-                                    className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-xl sm:rounded-2xl object-cover ring-4 ring-white shadow-xl bg-zinc-950"
-                                />
-                            ) : (
+            <Card className="border border-zinc-200 bg-white p-0 shadow-lg rounded-3xl relative w-full overflow-hidden">
+                <div className="h-3 bg-gradient-to-r from-red-700 via-red-600 to-red-700"/>
+
+                <CardContent className="p-6 sm:p-8 lg:p-10">
+                    <div className="flex flex-col lg:flex-row gap-8 items-start">
+                        <div className="shrink-0 mx-auto lg:mx-0 flex flex-col items-center">
+                            <div className="relative group">
+                                {user?.image ? (
+                                    <img
+                                        src={user.image}
+                                        alt={user.name || "User"}
+                                        className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover shadow-md border-4 border-zinc-100 bg-zinc-100"
+                                    />
+                                ) : (
+                                    <div
+                                        className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-red-600 shadow-inner">
+                                        <UserCircle className="w-16 h-16"/>
+                                    </div>
+                                )}
                                 <div
-                                    className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-xl sm:rounded-2xl bg-gradient-to-br from-zinc-950 to-zinc-900 text-amber-400 ring-4 ring-white shadow-xl flex items-center justify-center text-xl sm:text-2xl md:text-3xl font-black tracking-widest border border-zinc-800">
-                                    {getInitials()}
+                                    className="absolute -bottom-2 -right-2 bg-green-500 p-2 rounded-full border-4 border-white shadow-sm">
+                                    <ShieldCheck className="w-4 h-4 text-white"/>
+                                </div>
+                            </div>
+                            <span
+                                className="mt-3 text-xs font-bold text-zinc-400 uppercase tracking-widest">{session?.user.name}</span>
+                        </div>
+
+                        <div className="flex-1 w-full space-y-6">
+                            <div className="bg-zinc-50/50 p-6 rounded-2xl border border-zinc-100 space-y-6">
+                                <h3 className="text-base font-bold text-zinc-900 border-l-4 border-red-600 pl-3">Informazioni
+                                    Personali</h3>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <Field
+                                        label="Nome"
+                                        value={formData.name}
+                                        icon={User}
+                                        isEditing={isEditing}
+                                        id="name"
+                                        name="name"
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                    <Field
+                                        label="Cognome"
+                                        value={formData.surname}
+                                        icon={Contact}
+                                        isEditing={isEditing}
+                                        id="surname"
+                                        name="surname"
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                    <Field
+                                        label="Numero di Telefono"
+                                        value={formData.phoneNumber}
+                                        icon={Phone}
+                                        isEditing={isEditing}
+                                        id="phoneNumber"
+                                        name="phoneNumber"
+                                        onChange={handleChange}
+                                        placeholder="Non specificato"
+                                    />
+                                    <div className="w-full">
+                                        <Label
+                                            className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1.5 flex gap-1 items-center">
+                                            <Mail className="h-3.5 w-3.5 text-zinc-400 shrink-0"/> Indirizzo Email (Non
+                                            modificabile)
+                                        </Label>
+                                        <div
+                                            className="bg-white border border-zinc-200 px-4 py-3 rounded-xl min-h-[44px] flex items-center font-semibold text-sm text-zinc-700 uppercase break-all overflow-hidden">
+                                            {user?.email || "N/D"}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {isEditing && (
+                                <div
+                                    className="bg-zinc-50/50 p-6 rounded-2xl border border-zinc-100 space-y-6 animate-in fade-in duration-300">
+                                    <h3 className="text-base font-bold text-zinc-900 flex items-center gap-2 border-l-4 border-red-600 pl-3">
+                                        <Lock className="w-4 h-4 text-red-600"/> Modifica Password
+                                    </h3>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-1.5 w-full">
+                                            <Label htmlFor="currentPassword"
+                                                   className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Password
+                                                Attuale</Label>
+                                            <Input
+                                                id="currentPassword"
+                                                name="currentPassword"
+                                                type="password"
+                                                value={formData.currentPassword}
+                                                onChange={handleChange}
+                                                placeholder="••••••••"
+                                                className="bg-white border-zinc-200 focus:border-red-500 focus:ring-0 font-medium h-11 rounded-xl text-sm text-zinc-900 w-full"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5 w-full">
+                                            <Label htmlFor="newPassword"
+                                                   className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Nuova
+                                                Password (opzionale)</Label>
+                                            <Input
+                                                id="newPassword"
+                                                name="newPassword"
+                                                type="password"
+                                                value={formData.newPassword}
+                                                onChange={handleChange}
+                                                placeholder="••••••••"
+                                                className="bg-white border-zinc-200 focus:border-red-500 focus:ring-0 font-medium h-11 rounded-xl text-sm text-zinc-900 w-full"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </div>
-
                     </div>
-
-                    {isPending ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 animate-pulse">
-                            <div className="h-16 sm:h-20 bg-zinc-100 rounded-xl"/>
-                            <div className="h-16 sm:h-20 bg-zinc-100 rounded-xl"/>
-                            <div className="h-16 sm:h-20 bg-zinc-100 rounded-xl sm:col-span-2"/>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
-                            <div
-                                className="p-3 sm:p-4 rounded-xl bg-zinc-50/80 border border-zinc-200/80 transition-all hover:border-red-500/30 hover:shadow-xs">
-                                <div className="flex items-center gap-2.5 sm:gap-3 mb-1.5 sm:mb-2">
-                                    <div
-                                        className="p-1.5 sm:p-2 rounded-lg bg-white shadow-2xs text-red-600 border border-zinc-100 shrink-0">
-                                        <User className="w-4 h-4 sm:w-5 sm:h-5"/>
-                                    </div>
-                                    <span
-                                        className="text-[10px] sm:text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                                        Nome
-                                    </span>
-                                </div>
-                                <p className="text-base sm:text-lg font-bold text-zinc-900 pl-0.5 sm:pl-1 truncate">
-                                    {user?.name || "Non specificato"}
-                                </p>
-                            </div>
-
-                            <div
-                                className="p-3 sm:p-4 rounded-xl bg-zinc-50/80 border border-zinc-200/80 transition-all hover:border-red-500/30 hover:shadow-xs">
-                                <div className="flex items-center gap-2.5 sm:gap-3 mb-1.5 sm:mb-2">
-                                    <div
-                                        className="p-1.5 sm:p-2 rounded-lg bg-white shadow-2xs text-red-600 border border-zinc-100 shrink-0">
-                                        <Contact className="w-4 h-4 sm:w-5 sm:h-5"/>
-                                    </div>
-                                    <span
-                                        className="text-[10px] sm:text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                                        Cognome
-                                    </span>
-                                </div>
-                                <p className="text-base sm:text-lg font-bold text-zinc-900 pl-0.5 sm:pl-1 truncate">
-                                    {user?.surname || "Non specificato"}
-                                </p>
-                            </div>
-
-                            <div
-                                className="p-3 sm:p-4 rounded-xl bg-zinc-50/80 border border-zinc-200/80 transition-all hover:border-red-500/30 hover:shadow-xs sm:col-span-2">
-                                <div className="flex items-center gap-2.5 sm:gap-3 mb-1.5 sm:mb-2">
-                                    <div
-                                        className="p-1.5 sm:p-2 rounded-lg bg-white shadow-2xs text-red-600 border border-zinc-100 shrink-0">
-                                        <Mail className="w-4 h-4 sm:w-5 sm:h-5"/>
-                                    </div>
-                                    <span
-                                        className="text-[10px] sm:text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                                        Indirizzo Email
-                                    </span>
-                                </div>
-                                <p className="text-base sm:text-lg font-bold text-zinc-900 pl-0.5 sm:pl-1 truncate">
-                                    {user?.email || "Non specificato"}
-                                </p>
-                            </div>
-                        </div>
-                    )}
                 </CardContent>
             </Card>
         </div>
     );
 }
+
+const Field = ({
+                   label,
+                   value,
+                   icon: Icon,
+                   isEditing,
+                   id,
+                   name,
+                   onChange,
+                   placeholder = "Non specificato",
+                   required = false
+               }: any) => (
+    <div className="space-y-1.5 w-full">
+        <Label htmlFor={id}
+               className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5 pl-1 cursor-pointer">
+            <Icon className={`h-3.5 w-3.5 shrink-0 ${isEditing ? 'text-red-600' : 'text-zinc-400'}`}/>
+            <span>{label}</span>
+            {required && <span className="text-red-600 font-bold">*</span>}
+        </Label>
+        {isEditing ? (
+            <div className="w-full">
+                <Input
+                    id={id}
+                    name={name}
+                    value={value}
+                    onChange={onChange}
+                    placeholder={placeholder}
+                    className="bg-white border-zinc-200 focus:border-red-500 focus:ring-0 font-semibold h-11 rounded-xl text-sm text-zinc-900 w-full"
+                />
+            </div>
+        ) : (
+            <div
+                className="bg-white border border-zinc-200/80 text-zinc-900 px-4 py-3 rounded-xl min-h-[44px] flex items-center font-semibold text-sm break-all w-full">
+                {value || placeholder}
+            </div>
+        )}
+    </div>
+);
