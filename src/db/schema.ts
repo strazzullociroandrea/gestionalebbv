@@ -21,7 +21,7 @@ export const Verification = sqliteTable('Verification', {
     createdAt: text().default(sql`(CURRENT_TIMESTAMP)`),
     updatedAt: text(),
 });
-export const role = ['admin', 'administrative', 'client'] as const;
+export const role = ['admin', 'administrative', 'user'] as const;
 
 export const Account = sqliteTable('Account', {
     id: text().primaryKey(),
@@ -49,7 +49,7 @@ export const User = sqliteTable('User', {
     image: text(),
     createdAt: text().default(sql`(CURRENT_TIMESTAMP)`),
     updatedAt: text(),
-    role: text('role', {enum: role}).notNull().default('client'),
+    role: text('role', {enum: role}).notNull().default('user'),
 });
 
 //----------- END BETTER-AUTH TABLES -----------

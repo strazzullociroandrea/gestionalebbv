@@ -1,29 +1,17 @@
 "use client";
 
 import {useState} from "react";
-import {authClient} from "@/lib/auth-client";
 import {api} from "@/lib/api";
-import {ArrowRight, Loader2, Search, UserX} from "lucide-react";
+import {ArrowRight, Loader2, Search, UserX, Mail, Phone} from "lucide-react";
 import Link from "next/link";
 import {Card} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
 
-export default function AthletesPage() {
-    const {data: session, isPending: isSessionLoading} = authClient.useSession();
-    const user = session?.user as any;
-
+export default function UsersPage() {
+    const {data: users = [], isLoading} = api.administrative.getAllUsers.useQuery();
     const [searchTerm, setSearchTerm] = useState("");
 
-    const {
-        data: athletes = [],
-        isLoading: isAthletesLoading
-    } = api.administrative.getAllAthletes.useQuery({idUser: user?.id ?? ""}, {enabled: !!user?.id});
-
-    const filteredAthletes = athletes.filter((athlete) =>
-        athlete.surname?.toLowerCase().includes(searchTerm.toLowerCase()) || athlete.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    if (isSessionLoading || isAthletesLoading) {
+    if (isLoading) {
         return (
             <div className="w-full max-w-6xl mx-auto p-10 flex flex-col items-center justify-center min-h-[60vh] gap-4">
                 <Loader2 className="w-10 h-10 text-red-600 animate-spin"/>
@@ -32,13 +20,21 @@ export default function AthletesPage() {
         );
     }
 
+    const filteredUsers = users.filter((user: any) =>
+        user.surname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-10 space-y-8 animate-in fade-in duration-500">
-            <div className="flex flex-col gap-1">
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 tracking-tight">Atleti</h1>
-                <p className="text-zinc-500 font-medium text-sm sm:text-base">
-                    Anagrafica, certificati medici, stato tesseramento.
-                </p>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="flex flex-col gap-1">
+                    <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 tracking-tight">Utenti</h1>
+                    <p className="text-zinc-500 font-medium text-sm sm:text-base">
+                        Monitora e gestisci gli utenti registrati
+                    </p>
+                </div>
             </div>
 
             <div className="space-y-6">
@@ -50,51 +46,52 @@ export default function AthletesPage() {
                             <Search className="w-4 h-4"/>
                         </span>
                         <Input
-                            placeholder="Cerca per cognome, nome..."
+                            placeholder="Cerca per nome, cognome, email..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full h-11 bg-zinc-50/50 border-zinc-200 rounded-xl px-3.5 pl-10 text-sm font-medium focus:border-red-500 focus:ring-0 text-zinc-900"
                         />
                     </div>
                     <div className="flex items-center justify-between sm:justify-end gap-3 px-1">
-                        <h2 className="text-sm font-extrabold text-zinc-950 uppercase tracking-wider">Elenco Atleti</h2>
+                        <h2 className="text-sm font-extrabold text-zinc-950 uppercase tracking-wider">Elenco Utenti</h2>
                         <span
                             className="text-xs font-bold text-zinc-400 uppercase tracking-wider bg-zinc-100 px-3 py-1.5 rounded-xl">
-                            {filteredAthletes.length} di {athletes.length}
+                            {filteredUsers.length} di {users.length}
                         </span>
                     </div>
                 </div>
 
-                {filteredAthletes.length === 0 ? (
+                {filteredUsers.length === 0 ? (
                     <div
                         className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/50 p-12 text-center flex flex-col items-center justify-center">
                         <div
                             className="w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400 mb-3 shadow-2xs">
                             <UserX className="w-5 h-5 text-red-600"/>
                         </div>
-                        <h3 className="text-base font-bold text-zinc-900">Nessun atleta trovato</h3>
+                        <h3 className="text-base font-bold text-zinc-900">Nessun utente trovato</h3>
                         <p className="text-sm text-zinc-500 max-w-sm mt-1">
-                            Nessun atleta corrisponde al cognome "{searchTerm}".
+                            Nessun utente corrisponde alla ricerca "{searchTerm}".
                         </p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {filteredAthletes.map((athlete) => (
-                            <Link key={athlete.id} href={`/administrative/athletes/${athlete.id}`}
-                                  className="group block">
+                        {filteredUsers.map((user: any) => (
+                            <Link key={user.id} href={`/administrative/users/${user.id}`} className="group block">
                                 <Card
-                                    className="rounded-2xl border border-zinc-200 shadow-sm bg-white p-5 transition-all duration-300 group-hover:border-red-600/50 group-hover:shadow-md">
-                                    <div className="flex items-center justify-between">
+                                    className="rounded-2xl border border-zinc-200 shadow-sm bg-white p-5 transition-all duration-300 group-hover:border-red-600/50 group-hover:shadow-md flex flex-col justify-between h-full space-y-4">
+                                    <div className="flex items-center justify-between gap-3">
                                         <div className="flex items-center gap-3.5 min-w-0">
                                             <div
                                                 className="size-12 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-red-600 shrink-0 font-black text-sm">
-                                                {athlete.name?.[0]?.toUpperCase() || ""}{athlete.surname?.[0]?.toUpperCase() || ""}
+                                                {user.name?.[0]?.toUpperCase() || ""}{user.surname?.[0]?.toUpperCase() || ""}
                                             </div>
                                             <div className="min-w-0">
                                                 <p className="font-bold text-zinc-950 truncate text-base group-hover:text-red-600 transition-colors">
-                                                    {athlete.name} {athlete.surname}
+                                                    {user.name || "Senza Nome"} {user.surname || ""}
                                                 </p>
-                                                <p className="text-xs text-zinc-400 font-semibold uppercase tracking-wider mt-0.5">{athlete.status}</p>
+                                                <p className="text-xs text-zinc-400 truncate mt-0.5">
+                                                    UTENTE
+                                                </p>
                                             </div>
                                         </div>
                                         <div
