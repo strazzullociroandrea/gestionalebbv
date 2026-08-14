@@ -1,6 +1,6 @@
 "use client";
 import {api} from "@/lib/api";
-import {Loader2, Building2, Search, Plus, Trash2, ShieldAlert, Mail, Phone, RefreshCw, Pencil} from "lucide-react";
+import {Loader2, Building2, Search, Plus, Mail, Phone, RefreshCw, Pencil} from "lucide-react";
 import {Card} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
@@ -14,16 +14,6 @@ import {
     DialogTitle,
     DialogTrigger
 } from "@/components/ui/dialog";
-import {
-    AlertDialog,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger
-} from "@/components/ui/alert-dialog";
 
 export default function SponsorPage() {
     const utils = api.useUtils();
@@ -45,7 +35,7 @@ export default function SponsorPage() {
     const [newSponsorDesc, setNewSponsorDesc] = useState("");
 
     const {data: sponsors, isLoading} = api.administrative.getAllSponsor.useQuery();
-    const {data: activeSeason} = api.administrative.getActiveSeason.useQuery();
+    const {data: activeSeason} = api.administrative.getSeason.useQuery();
 
     const handleAddMutation = api.administrative.addSponsor.useMutation({
         onSuccess: async () => {

@@ -2,7 +2,7 @@
 
 import {useState} from "react";
 import {api} from "@/lib/api";
-import {ArrowRight, Loader2, Search, UserX, Mail, Phone} from "lucide-react";
+import {ArrowRight, Loader2, Search, UserX} from "lucide-react";
 import Link from "next/link";
 import {Card} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";

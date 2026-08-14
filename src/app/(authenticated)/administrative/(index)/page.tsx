@@ -2,7 +2,7 @@
 
 import {useState} from "react";
 import {api} from "@/lib/api";
-import {Plus, Trophy, AlertTriangle, Users, ChevronRight, Loader2, Calendar, KeyRound, Check, Search, UserX} from "lucide-react";
+import {Plus, Trophy, AlertTriangle, ChevronRight, Loader2, KeyRound, Check, Search, UserX} from "lucide-react";
 import {
     Dialog,
     DialogContent,
