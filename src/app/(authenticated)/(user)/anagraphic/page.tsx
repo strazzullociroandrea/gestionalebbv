@@ -22,6 +22,7 @@ import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {api} from "@/lib/api";
+import {Field} from "@/components/user/field";
 
 export default function AnagraphicPage() {
     const {data: session, isPending: isSessionLoading} = authClient.useSession();
@@ -40,10 +41,11 @@ export default function AnagraphicPage() {
         newPassword: "",
     });
 
+
     const updateUserMutation = api.user.updateUserProfile.useMutation({
         onSuccess: async () => {
             await authClient.getSession();
-            utils.invalidate();
+            await utils.invalidate();
             setIsEditing(false);
             setSuccessMessage(true);
             setGeneralError(null);
@@ -68,10 +70,10 @@ export default function AnagraphicPage() {
     }, [user]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const {name, value} = e.target;
-        setFormData(prev => ({...prev, [name]: value}));
+        const {name, value, type} = e.target;
+        const updatedValue = type === "date" ? value : value.toUpperCase();
+        setFormData(prev => ({...prev, [name]: updatedValue}));
     };
-
     const handleSave = async () => {
         setGeneralError(null);
 
@@ -259,7 +261,7 @@ export default function AnagraphicPage() {
                                             modificabile)
                                         </Label>
                                         <div
-                                            className="bg-white border border-zinc-200 px-4 py-3 rounded-xl min-h-[44px] flex items-center font-semibold text-sm text-zinc-700 uppercase break-all overflow-hidden">
+                                            className="bg-white border border-zinc-200 px-4 py-3 rounded-xl min-h-[44px] flex items-center text-sm text-zinc-700 uppercase break-all overflow-hidden">
                                             {user?.email || "N/D"}
                                         </div>
                                     </div>
@@ -312,41 +314,3 @@ export default function AnagraphicPage() {
         </div>
     );
 }
-
-const Field = ({
-                   label,
-                   value,
-                   icon: Icon,
-                   isEditing,
-                   id,
-                   name,
-                   onChange,
-                   placeholder = "Non specificato",
-                   required = false
-               }: any) => (
-    <div className="space-y-1.5 w-full">
-        <Label htmlFor={id}
-               className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5 pl-1 cursor-pointer">
-            <Icon className={`h-3.5 w-3.5 shrink-0 ${isEditing ? 'text-red-600' : 'text-zinc-400'}`}/>
-            <span>{label}</span>
-            {required && <span className="text-red-600 font-bold">*</span>}
-        </Label>
-        {isEditing ? (
-            <div className="w-full">
-                <Input
-                    id={id}
-                    name={name}
-                    value={value}
-                    onChange={onChange}
-                    placeholder={placeholder}
-                    className="bg-white border-zinc-200 focus:border-red-500 focus:ring-0 font-semibold h-11 rounded-xl text-sm text-zinc-900 w-full"
-                />
-            </div>
-        ) : (
-            <div
-                className="bg-white border border-zinc-200/80 text-zinc-900 px-4 py-3 rounded-xl min-h-[44px] flex items-center font-semibold text-sm break-all w-full">
-                {value || placeholder}
-            </div>
-        )}
-    </div>
-);

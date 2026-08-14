@@ -1,6 +1,6 @@
 "use client";
 
-import {useState} from "react";
+import React, {useState} from "react";
 import {
     User,
     Contact,
@@ -13,11 +13,12 @@ import {
     ShieldAlert,
     UserPlus,
     Loader2,
-    UserCircle
+    UserCircle,
+    FileText
 } from "lucide-react";
 import {Card, CardContent} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
+import {Field} from "@/components/user/field";
 import {Label} from "@/components/ui/label";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import CodiceFiscale from "codice-fiscale-js";
@@ -47,6 +48,8 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
         nin: "",
         birthPlace: "",
         countryBirthPlace: "",
+        ci: "",
+        expiredCI: ""
     });
 
     const isFormValid =
@@ -58,11 +61,13 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
         Boolean(formData.nin.trim()) &&
         Boolean(formData.birthPlace.trim()) &&
         Boolean(formData.countryBirthPlace.trim()) &&
+        Boolean(formData.ci.trim()) &&
+        Boolean(formData.expiredCI.trim()) &&
         !cfError;
 
     const createAthleteMutation = api.user.addAthletesToUser.useMutation({
-        onSuccess: async (data: any) => {
-            const createdAthleteId = data?.id || data?.idAthlete || data?.athlete?.id;
+        onSuccess: async (data) => {
+            const createdAthleteId = data?.id;
             setIsCreated(true);
             setSuccessMessage(true);
             if (createdAthleteId) setIdAthlete(createdAthleteId);
@@ -88,7 +93,6 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
             setCfError("Il CF deve essere di 16 caratteri.");
             return false;
         }
-
 
         try {
             const [y, m, d] = form.dateOfBirth.split("-");
@@ -120,7 +124,7 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
     };
 
     const handleChange = (name: string, value: string | null) => {
-        const updatedValue = name === "nin" || name === "countryBirthPlace" ? value?.toUpperCase() : value;
+        const updatedValue = name === "nin" || name === "countryBirthPlace" || name === "ci" ? value?.toUpperCase() : value;
         const updatedForm = {...formData, [name]: updatedValue};
         setFormData(updatedForm);
         validateCF(updatedForm);
@@ -136,7 +140,9 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
             homeAddress: "",
             nin: "",
             birthPlace: "",
-            countryBirthPlace: ""
+            countryBirthPlace: "",
+            ci: "",
+            expiredCI: ""
         });
         setCfError(null);
         setGeneralError(null);
@@ -154,7 +160,8 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
             idUser,
             ...formData,
             nin: formData.nin.toUpperCase(),
-            countryBirthPlace: formData.countryBirthPlace.toUpperCase()
+            countryBirthPlace: formData.countryBirthPlace.toUpperCase(),
+            ci: formData.ci.toUpperCase()
         });
     };
 
@@ -190,14 +197,14 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
                                 <Button
                                     onClick={handleClear}
                                     variant="outline"
-                                    className="flex-1 sm:flex-none border-zinc-200 text-zinc-700 hover:bg-zinc-100 py-4 sm:py-5 rounded-xl text-xs sm:text-sm uppercase tracking-wider"
+                                    className="flex-1 sm:flex-none border-zinc-200 text-zinc-700 hover:bg-zinc-100 py-4 sm:py-5 rounded-xl text-xs sm:text-sm uppercase tracking-wider cursor-pointer"
                                 >
-                                    Annulla
+                                    Svuota
                                 </Button>
                                 <Button
                                     onClick={handleSave}
                                     disabled={!isFormValid || createAthleteMutation.isPending}
-                                    className="flex-1 sm:flex-none bg-red-600 hover:bg-red-700 text-white font-semibold py-4 sm:py-5 px-6 rounded-xl shadow-sm disabled:opacity-60 text-xs sm:text-sm uppercase tracking-wider"
+                                    className="flex-1 sm:flex-none bg-red-600 hover:bg-red-700 text-white font-semibold py-4 sm:py-5 px-6 rounded-xl shadow-sm disabled:opacity-60 text-xs sm:text-sm uppercase tracking-wider cursor-pointer"
                                 >
                                     {createAthleteMutation.isPending ?
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin"/> :
@@ -228,9 +235,9 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
                         <h3 className="sm:col-span-2 text-base sm:text-lg font-bold text-zinc-900 mb-1 border-l-4 border-red-600 pl-3">Dati
                             Anagrafici</h3>
                         <Field icon={User} label="Nome *" id="name" value={formData.name}
-                               onChange={(e: any) => handleChange("name", e.target.value)}/>
+                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("name", e.target.value)}/>
                         <Field icon={Contact} label="Cognome *" id="surname" value={formData.surname}
-                               onChange={(e: any) => handleChange("surname", e.target.value)}/>
+                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("surname", e.target.value)}/>
 
                         <div className="space-y-1.5 w-full">
                             <Label htmlFor="gender"
@@ -251,27 +258,35 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
                         </div>
 
                         <Field icon={Calendar} label="Data di Nascita *" id="dateOfBirth" value={formData.dateOfBirth}
-                               onChange={(e: any) => handleChange("dateOfBirth", e.target.value)} type="date"/>
-                        <Field icon={CreditCard} label="Codice Fiscale *" id="nin" value={formData.nin}
-                               onChange={(e: any) => handleChange("nin", e.target.value)} error={cfError} maxLength={16}
+                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("dateOfBirth", e.target.value)} type="date"/>                        <Field icon={CreditCard} label="Codice Fiscale *" id="nin" value={formData.nin}
+                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("nin", e.target.value)} error={cfError} maxLength={16}
                                className="sm:col-span-2"/>
+
+                        <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                            <Field icon={FileText} label="Carta d'identità *" id="ci" value={formData.ci}
+                                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("ci", e.target.value)}/>
+                            <Field icon={Calendar} label="Scadenza carta d'identità *" id="expiredCI"
+                                   value={formData.expiredCI}
+                                   type="date"
+                                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("expiredCI", e.target.value)}/>
+                        </div>
                     </div>
 
                     <div className="space-y-4 sm:space-y-6 bg-zinc-50/50 p-4 sm:p-6 rounded-2xl border border-zinc-100">
                         <h3 className="text-base sm:text-lg font-bold text-zinc-900 mb-1 border-l-4 border-red-600 pl-3">Luogo
                             di Nascita</h3>
                         <Field icon={MapPin} label="Comune *" id="birthPlace" value={formData.birthPlace}
-                               onChange={(e: any) => handleChange("birthPlace", e.target.value)}/>
+                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("birthPlace", e.target.value)}/>
                         <Field icon={Globe} label="Provincia *" id="countryBirthPlace"
                                value={formData.countryBirthPlace}
-                               onChange={(e: any) => handleChange("countryBirthPlace", e.target.value)} maxLength={2}/>
+                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("countryBirthPlace", e.target.value)} maxLength={2}/>
                     </div>
 
                     <div className="space-y-4 sm:space-y-6 bg-zinc-50/50 p-4 sm:p-6 rounded-2xl border border-zinc-100">
                         <h3 className="text-base sm:text-lg font-bold text-zinc-900 mb-1 border-l-4 border-red-600 pl-3">Contatti
                             e Salute</h3>
                         <Field icon={MapPin} label="Indirizzo *" id="homeAddress" value={formData.homeAddress}
-                               onChange={(e: any) => handleChange("homeAddress", e.target.value)}/>
+                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("homeAddress", e.target.value)}/>
                         <div className="space-y-1.5 w-full">
                             <Label className="text-zinc-500 text-xs font-medium flex items-center gap-2 pl-1">
                                 <Mail className="h-3.5 w-3.5 text-zinc-400 shrink-0"/>
@@ -284,7 +299,7 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
                         </div>
                         <Field icon={Calendar} label="Scadenza Certificato" id="expirationMedicalCertificate"
                                value={formData.expirationMedicalCertificate}
-                               onChange={(e: any) => handleChange("expirationMedicalCertificate", e.target.value)}
+                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("expirationMedicalCertificate", e.target.value)}
                                type="date"/>
                     </div>
                 </div>
@@ -292,31 +307,3 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
         </Card>
     );
 };
-
-const Field = ({icon: Icon, label, id, value, onChange, type = "text", error, maxLength, className = ""}: any) => (
-    <div className={`space-y-1.5 w-full ${className}`}>
-        <Label htmlFor={id} className="text-zinc-500 text-xs font-medium flex items-center gap-2 pl-1 cursor-pointer">
-            <Icon className="h-3.5 w-3.5 shrink-0 text-red-600"/>
-            {label}
-        </Label>
-        <div className="w-full">
-            <Input
-                id={id}
-                name={id}
-                type={type}
-                value={value}
-                onChange={onChange}
-                maxLength={maxLength}
-                className={`bg-white border-zinc-200 focus:border-red-500 focus:ring-0 font-medium h-11 rounded-xl text-sm text-zinc-900 w-full uppercase ${
-                    error ? "border-red-500 focus:border-red-500" : ""
-                }`}
-            />
-            {error && (
-                <p className="text-red-600 text-xs mt-1.5 font-medium flex items-center gap-1">
-                    <ShieldAlert className="h-3.5 w-3.5 shrink-0"/>
-                    {error}
-                </p>
-            )}
-        </div>
-    </div>
-);

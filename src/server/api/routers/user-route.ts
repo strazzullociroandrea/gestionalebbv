@@ -52,7 +52,6 @@ export const UserProcedure = createTRPCRouter({
                 const result = await ctx.db
                     .select({
                         athlete: Athlete,
-                        associate: Associate,
                     })
                     .from(Athlete)
                     .innerJoin(Associate, eq(Athlete.id, Associate.athleteId))
@@ -100,6 +99,8 @@ export const UserProcedure = createTRPCRouter({
                 nin: z.string().optional().nullable(),
                 birthPlace: z.string().optional().nullable(),
                 countryBirthPlace: z.string().optional().nullable(),
+                ci: z.string().optional().nullable(),
+                expiredCI: z.string().optional().nullable()
             })
         )
         .mutation(async ({input, ctx}) => {
@@ -114,6 +115,8 @@ export const UserProcedure = createTRPCRouter({
                 nin,
                 birthPlace,
                 countryBirthPlace,
+                ci,
+                expiredCI
             } = input;
 
             try {
@@ -151,6 +154,8 @@ export const UserProcedure = createTRPCRouter({
                 if (nin !== undefined) updatePayload.nin = nin?.toUpperCase();
                 if (birthPlace !== undefined) updatePayload.birthPlace = birthPlace?.toUpperCase();
                 if (countryBirthPlace !== undefined) updatePayload.countryBirthPlace = countryBirthPlace?.toUpperCase();
+                if (ci !== undefined) updatePayload.ci = ci?.toUpperCase();
+                if (expiredCI !== undefined) updatePayload.expiredCI = expiredCI?.toUpperCase();
 
                 const result = await ctx.db
                     .update(Athlete)
@@ -225,6 +230,42 @@ export const UserProcedure = createTRPCRouter({
             }
         }),
 
+    isAthleteActive: userProcedure
+        .input(z.object({
+            idAthlete: z.string()
+        }))
+        .query(async ({ctx, input}) => {
+            const {idAthlete} = input;
+
+            try {
+
+                const athlete = await ctx.db.select()
+                    .from(Athlete)
+                    .where(eq(Athlete.id, idAthlete))
+                    .limit(1);
+
+                if (!athlete.length || !athlete[0]) {
+                    throw new TRPCError({
+                        code: "NOT_FOUND",
+                        message: "Atleta non trovato.",
+                    });
+                }
+
+                return athlete[0].status === "active";
+
+            } catch (error) {
+                console.error("[ISATHLETEACTIVE USER API ERROR] ", error);
+
+                if (error instanceof TRPCError) {
+                    throw error;
+                }
+
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Non è stato possibile verificare lo stato dell'atleta.",
+                });
+            }
+        }),
     userTeamSubscribe: userProcedure
         .input(z.object({
             idAthlete: z.string(),
@@ -406,7 +447,9 @@ export const UserProcedure = createTRPCRouter({
         nin: z.string(),
         expirationMedicalCertificate: z.string(),
         birthPlace: z.string(),
-        countryBirthPlace: z.string()
+        countryBirthPlace: z.string(),
+        ci: z.string(),
+        expiredCI: z.string()
     }))
         .mutation(async ({ctx, input}) => {
             try {
@@ -437,6 +480,8 @@ export const UserProcedure = createTRPCRouter({
                             birthPlace: input.birthPlace.toUpperCase(),
                             countryBirthPlace: input.countryBirthPlace.toUpperCase(),
                             status: "active" as const,
+                            ci: input.ci,
+                            expiredCI: input.expiredCI
                         }
                     )
                     .returning({id: Athlete.id});
@@ -562,6 +607,71 @@ export const UserProcedure = createTRPCRouter({
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
                     message: "Non è stato possibile aggiornare le informazioni del profilo utente.",
+                });
+            }
+        }),
+    areValidDocuments: userProcedure
+        .input(z.object({
+            idAthlete: z.string()
+        }))
+        .query(async ({ctx, input}) => {
+            const {idAthlete} = input;
+
+            try {
+
+                const data = await ctx.db.select({
+                    expiredCI: Athlete.expiredCI,
+                    expirationMedicalCertificate: Athlete.expirationMedicalCertificate,
+                }).from(Athlete)
+                    .where(eq(Athlete.id, idAthlete))
+                    .limit(1);
+
+                if (data.length === 0) {
+                    throw new TRPCError({
+                        code: "NOT_FOUND",
+                        message: "Atleta non trovato.",
+                    });
+                }
+
+
+                const athleteData = data[0];
+                const oneMonthInMs = 30 * 24 * 60 * 60 * 1000;
+                const now = new Date().getTime();
+
+                const {expirationMedicalCertificate, expiredCI} = athleteData;
+                const messages: string[] = [];
+
+                if (!expirationMedicalCertificate) {
+                    messages.push("Certificato medico non presente.");
+                } else if (new Date(expirationMedicalCertificate).getTime() < now) {
+                    messages.push("Certificato medico scaduto.");
+                } else if (new Date(expirationMedicalCertificate).getTime() - now < oneMonthInMs) {
+                    messages.push("Certificato medico in scadenza tra meno di un mese.");
+                }
+
+                if (!expiredCI) {
+                    messages.push("Carta di identità non presente.");
+                } else if (new Date(expiredCI).getTime() < now) {
+                    messages.push("Carta di identità scaduta.");
+                } else if (new Date(expiredCI).getTime() - now < oneMonthInMs) {
+                    messages.push("Carta di identità in scadenza tra meno di un mese.");
+                }
+
+                return {
+                    isValid: messages.length === 0,
+                    messages
+                };
+
+            } catch (error) {
+                console.error("[ARE VALID ATHLETES DOCUMENTS USER API ERROR] ", error);
+
+                if (error instanceof TRPCError) {
+                    throw error;
+                }
+
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Non è stato possibile verificare la validità dei documenti dell'atleta.",
                 });
             }
         })

@@ -36,9 +36,9 @@ export default async function Layout({
                 className="sticky top-0 z-40 flex h-14 w-full items-center gap-4 border-b border-sidebar-border/70 bg-background/95 px-4 backdrop-blur md:hidden">
                 <SidebarTrigger
                     className="h-9 w-9 rounded-xl border border-sidebar-border/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"/>
-                <span className="text-sm font-semibold tracking-tight text-foreground">
-                        Gestionale BBV
-                    </span>
+                <span className="text-sm font-black uppercase tracking-wider text-zinc-950 truncate">
+                    BBV <span className="text-red-600">Gestionale</span>
+                </span>
             </header>
 
             <div className="flex flex-1 w-full">
