@@ -1,6 +1,6 @@
-import {administrativeProcedure, createTRPCRouter} from "@/server/api/trpc";
+import {administrativeProcedure, adminProcedure, createTRPCRouter, userProcedure} from "@/server/api/trpc";
 import {z} from "zod";
-import {Associate, Athlete, IsIn, Sponsor, SportSeason, Team, ToSponsor, User} from "@/db/schema";
+import {Associate, Athlete, IsIn, Sponsor, SportSeason, Team, ToSponsor, User, Session} from "@/db/schema";
 import {eq, and, ne, desc, notInArray, or} from "drizzle-orm";
 import {TRPCError} from "@trpc/server";
 
@@ -111,7 +111,6 @@ export const AdministrativeRoute = createTRPCRouter({
             z.object({
                 name: z.string().min(1, "Il nome della squadra è obbligatorio"),
                 subscribePassword: z.string().min(1, "La password di iscrizione è obbligatoria"),
-                password: z.string().min(1, "La password è obbligatoria"),
                 idSeason: z.string().min(1, "L'ID della stagione è obbligatorio"),
             })
         )
@@ -148,7 +147,6 @@ export const AdministrativeRoute = createTRPCRouter({
                     id: crypto.randomUUID(),
                     name: input.name,
                     subscribePassword: input.subscribePassword,
-                    password: input.password,
                     idSeason: input.idSeason,
                 }).returning();
 
@@ -271,6 +269,8 @@ export const AdministrativeRoute = createTRPCRouter({
                 birthPlace: z.string().min(2, "Attenzione! Il luogo di nascita deve essere composto da almeno 2 caratteri.").max(100, "Attenzione! Il luogo di nascita non può superare i 100 caratteri."),
                 countryBirthPlace: z.string().length(2, "Attenzione! Il paese di nascita deve essere composto da esattamente 2 caratteri.").toUpperCase(),
                 status: z.enum(["active", "inactive"], "Attenzione! Lo stato dell'atleta non è valido."),
+                ci: z.string(),
+                expiredCI: z.string()
             })
         )
         .mutation(async ({input, ctx}) => {
@@ -727,6 +727,7 @@ export const AdministrativeRoute = createTRPCRouter({
                     .from(Sponsor)
                     .innerJoin(ToSponsor, eq(Sponsor.id, ToSponsor.idSponsor))
                     .innerJoin(SportSeason, eq(ToSponsor.idSeason, SportSeason.id))
+                    .orderBy(SportSeason.status, desc(SportSeason.season));
 
                 const finalData: {
                     season: string,
@@ -922,6 +923,156 @@ export const AdministrativeRoute = createTRPCRouter({
                     message: "Attenzione. Non è stato possibile aggiornare i dati dello sponsor.",
                 });
             }
-        })
+        }),
+    createAdministrativeUser: adminProcedure
+        .input(z.object({
+            username: z.string(),
+            surname: z.string(),
+            email: z.string().email(),
+            phone: z.string().optional()
+        }))
+        .mutation(async ({ctx, input}) => {
+            try {
+
+                const isExistingUser = await ctx.db.select().from(User).where(eq(User.email, input.email)).limit(1);
+
+                if (isExistingUser.length > 0) {
+                    throw new TRPCError({
+                        code: "CONFLICT",
+                        message: "L'utente con questa email esiste già.",
+                    });
+                }
+
+                await ctx.db.insert(User).values({
+                    id: crypto.randomUUID(),
+                    name: input.username,
+                    surname: input.surname,
+                    email: input.email,
+                    phoneNumber: input.phone,
+                    role: "administrative"
+                });
+
+                return {success: true};
+
+            } catch (error) {
+                console.error("[CREATE USER API ERROR] ", error);
+
+                if (error instanceof TRPCError) {
+                    throw error;
+                }
+
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Attenzione. Non è stato possibile creare l'utente.",
+                });
+            }
+        }),
+    getAdministrativeUser: adminProcedure
+        .input(z.void())
+        .query(async ({ctx}) => {
+            try {
+
+                return await ctx.db.select().from(User).where(eq(User.role, "administrative")).orderBy(User.surname);
+
+            } catch (error) {
+                console.error("[GET ADMINISTRATIVE USER API ERROR] ", error);
+
+                if (error instanceof TRPCError) {
+                    throw error;
+                }
+
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Attenzione. Non è stato possibile recuperare gli utenti amministrativi.",
+                });
+            }
+        }),
+    updateUserProfile: adminProcedure
+        .input(z.object({
+            id: z.string(),
+            name: z.string().min(1, "Il nome è obbligatorio"),
+            surname: z.string().min(1, "Il cognome è obbligatorio"),
+            email: z.string().email("L'email inserita non è valida.").min(1, "L'email è obbligatoria"),
+            phoneNumber: z.string().optional()
+        }))
+        .mutation(async ({ctx, input}) => {
+            try {
+
+                const existingUser = await ctx.db.select().from(User).where(eq(User.id, input.id)).limit(1);
+
+                if (existingUser.length === 0) {
+                    throw new TRPCError({
+                        code: "NOT_FOUND",
+                        message: "Attenzione! L'utente selezionato non esiste o è stato rimosso.",
+                    });
+                }
+
+                const emailInUse = await ctx.db.select().from(User).where(eq(User.email, input.email)).limit(1);
+
+                if (emailInUse.length > 0 && emailInUse[0].id !== input.id) {
+                    throw new TRPCError({
+                        code: "CONFLICT",
+                        message: "Attenzione! L'email inserita è già in uso da un altro utente. Inserisci un'email diversa.",
+                    });
+                }
+
+                await ctx.db.update(User)
+                    .set({
+                        name: input.name,
+                        surname: input.surname,
+                        email: input.email,
+                        phoneNumber: input.phoneNumber || null
+                    })
+                    .where(eq(User.id, input.id));
+
+                return {success: true};
+
+            } catch (error) {
+
+                console.error("[UPDATE ADMINISTRATIVE USER PROFILE API ERROR] ", error);
+
+                if (error instanceof TRPCError) {
+                    throw error;
+                }
+
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Attenzione. Non è stato possibile aggiornare il profilo dell'utente amministrativo.",
+                });
+
+            }
+        }),
+    deleteAdministrativeProfile: adminProcedure
+        .input(z.object({
+            id: z.string()
+        }))
+        .mutation(async ({ctx, input}) => {
+            try {
+                const existingUser = await ctx.db.select().from(User).where(eq(User.id, input.id)).limit(1);
+
+                if (existingUser.length === 0) {
+                    throw new TRPCError({
+                        code: "NOT_FOUND",
+                        message: "Attenzione! L'utente selezionato non esiste o è stato rimosso.",
+                    });
+                }
+
+                await ctx.db.delete(User).where(eq(User.id, input.id));
+                await ctx.db.delete(Session).where(eq(Session.userId, input.id));
+
+                return {success: true};
+            } catch (error) {
+                console.error("[DELETE ADMINISTRATIVE PROFILE API ERROR] ", error);
+
+                if (error instanceof TRPCError) {
+                    throw error;
+                }
+
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Attenzione. Non è stato possibile eliminare il profilo dell'utente amministrativo.",
+                });
+            }
+        }),
 
 })

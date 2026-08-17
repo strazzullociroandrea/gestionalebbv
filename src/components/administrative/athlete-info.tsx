@@ -17,7 +17,7 @@ import {
     CheckCircle2,
     ShieldAlert,
     UserCircle,
-    Activity
+    Activity, FileText
 } from "lucide-react";
 import {Card, CardContent} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
@@ -57,7 +57,7 @@ export const AthleteInfo = ({idUser = "", idAthlete, emailUser: initialEmailUser
         }
     });
 
-    const athleteData = (responseData as any)?.athlete || responseData;
+    const athleteData = responseData?.athlete;
 
     const [formData, setFormData] = useState({
         name: "",
@@ -69,6 +69,8 @@ export const AthleteInfo = ({idUser = "", idAthlete, emailUser: initialEmailUser
         birthPlace: "",
         countryBirthPlace: "",
         status: "active",
+        ci: "",
+        expiredCI: ""
     });
 
     useEffect(() => {
@@ -83,6 +85,8 @@ export const AthleteInfo = ({idUser = "", idAthlete, emailUser: initialEmailUser
                 birthPlace: athleteData.birthPlace || "",
                 countryBirthPlace: athleteData.countryBirthPlace || "",
                 status: athleteData.status || "active",
+                ci: athleteData.ci || "",
+                expiredCI: athleteData.expiredCI || ""
             });
         }
     }, [athleteData]);
@@ -119,6 +123,8 @@ export const AthleteInfo = ({idUser = "", idAthlete, emailUser: initialEmailUser
             birthPlace: formData.birthPlace,
             countryBirthPlace: formData.countryBirthPlace,
             status: formData.status === "active" ? "active" : "inactive",
+            ci: formData.ci,
+            expiredCI: formData.expiredCI
         });
     };
 
@@ -134,6 +140,8 @@ export const AthleteInfo = ({idUser = "", idAthlete, emailUser: initialEmailUser
                 birthPlace: athleteData.birthPlace || "",
                 countryBirthPlace: athleteData.countryBirthPlace || "",
                 status: athleteData.status || "active",
+                ci: athleteData.ci || "",
+                expiredCI: athleteData.expiredCI || ""
             });
         }
         setFormError(null);
@@ -252,6 +260,13 @@ export const AthleteInfo = ({idUser = "", idAthlete, emailUser: initialEmailUser
                                    handleChange={handleChange} isEditing={isEditing} type="date" required/>
                         <InfoField icon={CreditCard} label="Codice Fiscale" id="nin" value={formData.nin}
                                    handleChange={handleChange} isEditing={isEditing} maxLength={16} required/>
+                        <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                            <InfoField icon={FileText} label="Carta d'identità" id="ci" value={formData.ci}
+                                       handleChange={handleChange} isEditing={isEditing} required/>
+                            <InfoField icon={Calendar} label="Scadenza carta d'identità" id="expiredCI"
+                                       value={formData.expiredCI} handleChange={handleChange} isEditing={isEditing}
+                                       type="date" required/>
+                        </div>
                     </div>
 
                     <div className="space-y-4 sm:space-y-6 bg-zinc-50/50 p-4 sm:p-6 rounded-2xl border border-zinc-100">

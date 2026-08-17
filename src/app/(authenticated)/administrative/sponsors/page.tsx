@@ -23,7 +23,7 @@ export default function SponsorPage() {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [deleteSponsorId, setDeleteSponsorId] = useState<string | null>(null);
 
-    const [editingSponsor, setEditingSponsor] = useState<any>(null);
+    const [editingSponsor, setEditingSponsor] = useState<{ id: string; name: string; email: string; phone: string; description: string } | null>(null);
     const [editName, setEditName] = useState("");
     const [editEmail, setEditEmail] = useState("");
     const [editPhone, setEditPhone] = useState("");
@@ -73,14 +73,14 @@ export default function SponsorPage() {
 
     const currentActiveSeasonName = !activeSeason ? "" : activeSeason[0].season;
     const seasonsArray = Array.isArray(sponsors) ? sponsors : (sponsors?.data || []);
-    const seasonsList = seasonsArray.map((item: any) => item.season);
+    const seasonsList = seasonsArray.map((item) => item.season);
 
-    const filteredData = seasonsArray.map((group: any) => {
+    const filteredData = seasonsArray.map((group) => {
         if (selectedSeason !== "all" && group.season !== selectedSeason) {
             return null;
         }
 
-        const filteredSponsors = group.sponsor.filter((s: any) =>
+        const filteredSponsors = group.sponsor.filter((s: { name: string; description: string }) =>
             s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             s.description?.toLowerCase().includes(searchTerm.toLowerCase())
         );
@@ -113,7 +113,7 @@ export default function SponsorPage() {
         }
     };
 
-    const handleOpenEdit = (sponsor: any) => {
+    const handleOpenEdit = (sponsor: { id: string; name: string; email: string; phone: string; description: string }) => {
         setEditingSponsor(sponsor);
         setEditName(sponsor.name || "");
         setEditEmail(sponsor.email || "");
@@ -381,7 +381,7 @@ export default function SponsorPage() {
                 </div>
             ) : (
                 <div className="space-y-8">
-                    {filteredData.map((group: any) => {
+                    {filteredData.map((group) => {
                         const isCurrentSeason = activeSeason && (group.season === currentActiveSeasonName);
                         return (
                             <div key={group.season} className="space-y-4">
@@ -404,7 +404,7 @@ export default function SponsorPage() {
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {group.sponsor.map((sponsor: any) => {
+                                    {group.sponsor.map((sponsor: { id: string; name: string; email: string; phone: string; description: string }) => {
                                         const notInCurrentSeason = activeSeason && (group.season !== currentActiveSeasonName);
                                         return (
                                             <Card key={sponsor.id}

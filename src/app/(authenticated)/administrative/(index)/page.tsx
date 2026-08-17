@@ -21,7 +21,6 @@ export default function TeamsPage() {
     const [open, setOpen] = useState(false);
     const [teamName, setTeamName] = useState("");
     const [subscribePassword, setSubscribePassword] = useState("");
-    const [password, setPassword] = useState("");
     const [selectedSeasonId, setSelectedSeasonId] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const [error, setError] = useState("");
@@ -64,8 +63,7 @@ export default function TeamsPage() {
             await utils.administrative.getAllTeams.invalidate();
             setTeamName("");
             setSubscribePassword("");
-            setPassword("");
-        },
+         },
         onError: (err) => {
             setError(err.message);
         },
@@ -77,7 +75,6 @@ export default function TeamsPage() {
         createTeamHandler.mutate({
             name: teamName,
             subscribePassword,
-            password,
             idSeason: currentFormSeasonId,
         });
     };
@@ -175,21 +172,6 @@ export default function TeamsPage() {
                                 value={subscribePassword}
                                 onChange={(e) => setSubscribePassword(e.target.value)}
                                 className="h-11 bg-white border-zinc-200 rounded-xl text-sm font-semibold text-zinc-900 focus:border-red-500 focus:ring-0 font-mono"
-                                required
-                            />
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <Label htmlFor="password" className="text-[10px] font-black text-zinc-400 uppercase tracking-widest pl-1">
-                                Password Gestione Squadra
-                            </Label>
-                            <Input
-                                id="password"
-                                type="password"
-                                placeholder="••••••••"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="h-11 bg-white border-zinc-200 rounded-xl text-sm font-semibold text-zinc-900 focus:border-red-500 focus:ring-0"
                                 required
                             />
                         </div>

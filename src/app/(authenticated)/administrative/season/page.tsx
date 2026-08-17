@@ -28,7 +28,7 @@ export default function Season() {
 
     const {data: seasons = [], isLoading} = api.administrative.getSeason.useQuery();
 
-    const filteredSeasons = seasons.filter((season: any) =>
+    const filteredSeasons = seasons.filter((season) =>
         season.season?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -86,7 +86,8 @@ export default function Season() {
         <div className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-10 space-y-8 animate-in fade-in duration-500">
 
             <Dialog onOpenChange={handleOpenChange} open={open}>
-                <DialogContent className="sm:max-w-md w-[95%] rounded-3xl border border-zinc-200 bg-white p-6 shadow-xl">
+                <DialogContent
+                    className="sm:max-w-md w-[95%] rounded-3xl border border-zinc-200 bg-white p-6 shadow-xl">
                     <DialogHeader className="space-y-1">
                         <DialogTitle className="text-xl font-extrabold text-zinc-950 tracking-tight">
                             Aggiungi Nuova Stagione
@@ -96,13 +97,15 @@ export default function Season() {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900 text-xs font-medium">
+                    <div
+                        className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900 text-xs font-medium">
                         <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5"/>
                         <span>Una volta creata una nuova stagione, la precedente verrà chiusa e non sarà più possibile attivarla.</span>
                     </div>
 
                     {error && (
-                        <div className="flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700 text-xs font-semibold">
+                        <div
+                            className="flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700 text-xs font-semibold">
                             <AlertTriangle className="w-4 h-4 text-red-600 shrink-0"/>
                             <span>{error}</span>
                         </div>
@@ -110,7 +113,8 @@ export default function Season() {
 
                     <form onSubmit={handleSubmit} className="space-y-4 mt-2">
                         <div className="space-y-1.5">
-                            <Label htmlFor="season" className="text-[10px] font-black text-zinc-400 uppercase tracking-widest pl-1">
+                            <Label htmlFor="season"
+                                   className="text-[10px] font-black text-zinc-400 uppercase tracking-widest pl-1">
                                 Nome Stagione
                             </Label>
                             <Input
@@ -125,7 +129,8 @@ export default function Season() {
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label htmlFor="newFee" className="text-[10px] font-black text-zinc-400 uppercase tracking-widest pl-1">
+                            <Label htmlFor="newFee"
+                                   className="text-[10px] font-black text-zinc-400 uppercase tracking-widest pl-1">
                                 Costo Nuova Iscrizione (€)
                             </Label>
                             <Input
@@ -141,7 +146,8 @@ export default function Season() {
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label htmlFor="renewalFee" className="text-[10px] font-black text-zinc-400 uppercase tracking-widest pl-1">
+                            <Label htmlFor="renewalFee"
+                                   className="text-[10px] font-black text-zinc-400 uppercase tracking-widest pl-1">
                                 Costo Rinnovo Iscrizione (€)
                             </Label>
                             <Input
@@ -170,7 +176,8 @@ export default function Season() {
                                 className="w-full sm:w-auto rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider h-11 px-6 shadow-sm cursor-pointer"
                                 disabled={createSeasonHandler.isPending}
                             >
-                                {createSeasonHandler.isPending ? <Loader2 className="w-4 h-4 animate-spin"/> : "Conferma e Crea"}
+                                {createSeasonHandler.isPending ?
+                                    <Loader2 className="w-4 h-4 animate-spin"/> : "Conferma e Crea"}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -178,7 +185,8 @@ export default function Season() {
             </Dialog>
 
             <Dialog open={Boolean(deleteId)} onOpenChange={(val) => !val && setDeleteId(null)}>
-                <DialogContent className="sm:max-w-md w-[95%] rounded-3xl border border-zinc-200 bg-white p-6 shadow-xl">
+                <DialogContent
+                    className="sm:max-w-md w-[95%] rounded-3xl border border-zinc-200 bg-white p-6 shadow-xl">
                     <DialogHeader className="space-y-1">
                         <DialogTitle className="text-xl font-extrabold text-zinc-950 tracking-tight">
                             Elimina Stagione
@@ -203,7 +211,8 @@ export default function Season() {
                             disabled={deleteSeasonHandler.isPending}
                             onClick={() => deleteId && deleteSeasonHandler.mutate({idSeason: deleteId})}
                         >
-                            {deleteSeasonHandler.isPending ? <Loader2 className="w-4 h-4 animate-spin"/> : "Conferma Eliminazione"}
+                            {deleteSeasonHandler.isPending ?
+                                <Loader2 className="w-4 h-4 animate-spin"/> : "Conferma Eliminazione"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -211,7 +220,8 @@ export default function Season() {
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex flex-col gap-1">
-                    <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 tracking-tight">Stagioni sportive</h1>
+                    <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 tracking-tight">Stagioni
+                        sportive</h1>
                     <p className="text-zinc-500 font-medium text-sm sm:text-base">
                         Organizza, monitora e gestisci le stagioni della società.
                     </p>
@@ -227,9 +237,11 @@ export default function Season() {
             </div>
 
             <div className="space-y-6">
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm">
+                <div
+                    className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm">
                     <div className="relative w-full sm:max-w-xs">
-                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-400">
+                        <span
+                            className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-400">
                             <Search className="w-4 h-4"/>
                         </span>
                         <Input
@@ -240,16 +252,20 @@ export default function Season() {
                         />
                     </div>
                     <div className="flex items-center justify-between sm:justify-end gap-3 px-1">
-                        <h2 className="text-sm font-extrabold text-zinc-950 uppercase tracking-wider">Elenco Stagioni</h2>
-                        <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider bg-zinc-100 px-3 py-1.5 rounded-xl">
+                        <h2 className="text-sm font-extrabold text-zinc-950 uppercase tracking-wider">Elenco
+                            Stagioni</h2>
+                        <span
+                            className="text-xs font-bold text-zinc-400 uppercase tracking-wider bg-zinc-100 px-3 py-1.5 rounded-xl">
                             {filteredSeasons.length} di {seasons.length}
                         </span>
                     </div>
                 </div>
 
                 {filteredSeasons.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/50 p-12 text-center flex flex-col items-center justify-center">
-                        <div className="w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400 mb-3 shadow-2xs">
+                    <div
+                        className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/50 p-12 text-center flex flex-col items-center justify-center">
+                        <div
+                            className="w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400 mb-3 shadow-2xs">
                             <CalendarOff className="w-5 h-5 text-red-600"/>
                         </div>
                         <h3 className="text-base font-bold text-zinc-900">Nessuna stagione trovata</h3>
@@ -259,7 +275,7 @@ export default function Season() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {filteredSeasons.map((season: any, index: number) => {
+                        {filteredSeasons.map((season, index: number) => {
                             const isActive = season.status === "active";
                             return (
                                 <Card
@@ -268,7 +284,8 @@ export default function Season() {
                                 >
                                     <div className="flex items-center justify-between gap-3">
                                         <div className="flex items-center gap-3.5 min-w-0">
-                                            <div className="size-12 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-red-600 shrink-0">
+                                            <div
+                                                className="size-12 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-red-600 shrink-0">
                                                 <Calendar className="w-5 h-5"/>
                                             </div>
                                             <div className="min-w-0">
@@ -278,11 +295,12 @@ export default function Season() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 shrink-0">
-                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
-                                                isActive
-                                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200/60"
-                                                    : "bg-zinc-100 text-zinc-600 border border-zinc-200/60"
-                                            }`}>
+                                            <span
+                                                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
+                                                    isActive
+                                                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200/60"
+                                                        : "bg-zinc-100 text-zinc-600 border border-zinc-200/60"
+                                                }`}>
                                                 {isActive ? "Attiva" : "Chiusa"}
                                             </span>
                                             {!isActive && (
@@ -301,12 +319,16 @@ export default function Season() {
 
                                     <div className="grid grid-cols-2 gap-3 pt-4 border-t border-zinc-100">
                                         <div className="bg-zinc-50/60 p-3 rounded-xl border border-zinc-100">
-                                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Costo Iscrizione</span>
-                                            <span className="font-extrabold text-zinc-900 text-sm">€ {Number(season.newFee).toFixed(2)}</span>
+                                            <span
+                                                className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Costo Iscrizione</span>
+                                            <span
+                                                className="font-extrabold text-zinc-900 text-sm">€ {Number(season.newFee).toFixed(2)}</span>
                                         </div>
                                         <div className="bg-zinc-50/60 p-3 rounded-xl border border-zinc-100">
-                                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Costo Rinnovo</span>
-                                            <span className="font-extrabold text-zinc-900 text-sm">€ {Number(season.renewalFee).toFixed(2)}</span>
+                                            <span
+                                                className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Costo Rinnovo</span>
+                                            <span
+                                                className="font-extrabold text-zinc-900 text-sm">€ {Number(season.renewalFee).toFixed(2)}</span>
                                         </div>
                                     </div>
                                 </Card>
