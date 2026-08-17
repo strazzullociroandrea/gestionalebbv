@@ -71,9 +71,17 @@ export default function AnagraphicPage() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const {name, value, type} = e.target;
+
+        if (name === "currentPassword" || name === "newPassword" || name === "email") {
+            setFormData(prev => ({...prev, [name]: value}));
+            return;
+        }
+
         const updatedValue = type === "date" ? value : value.toUpperCase();
         setFormData(prev => ({...prev, [name]: updatedValue}));
     };
+
+
     const handleSave = async () => {
         setGeneralError(null);
 

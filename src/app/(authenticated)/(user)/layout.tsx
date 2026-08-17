@@ -2,7 +2,6 @@ import {getServerSession} from "@/lib/auth";
 import {redirect} from "next/navigation";
 import {SidebarUser} from "@/components/user/sidebar";
 import {SidebarTrigger} from "@/components/ui/sidebar";
-import {SidebarAdministrative} from "@/components/administrative/sidebar";
 
 export const runtime = "edge";
 
@@ -21,11 +20,9 @@ export default async function Layout({
     const role = session.user.role;
 
     if (role !== "user") {
-        const targetPath = role === "administrative"
+        const targetPath = (role === "admin" || role === "administrative")
             ? "administrative"
-            : role === "admin"
-                ? "admin"
-                : "";
+            : "";
         redirect("/" + targetPath);
     }
 
