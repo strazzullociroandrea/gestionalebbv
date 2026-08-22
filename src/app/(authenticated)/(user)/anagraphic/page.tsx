@@ -23,10 +23,25 @@ import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {api} from "@/lib/api";
 import {Field} from "@/components/user/field";
+import {useRouter} from "next/navigation";
 
 export default function AnagraphicPage() {
+    const router = useRouter();
     const {data: session, isPending: isSessionLoading} = authClient.useSession();
-    const user = session?.user as any;
+
+    // Tipizzazione sicura per includere i campi custom di Better Auth
+    const user = session?.user as {
+        createdAt: Date;
+        email: string;
+        emailVerified: boolean;
+        id: string;
+        image?: string | null | undefined;
+        name: string;
+        updatedAt: Date;
+        surname?: string | null;
+        phoneNumber?: string | null;
+    } | undefined;
+
     const utils = api.useUtils();
 
     const [isEditing, setIsEditing] = useState(false);
@@ -40,7 +55,6 @@ export default function AnagraphicPage() {
         currentPassword: "",
         newPassword: "",
     });
-
 
     const updateUserMutation = api.user.updateUserProfile.useMutation({
         onSuccess: async () => {
@@ -81,9 +95,13 @@ export default function AnagraphicPage() {
         setFormData(prev => ({...prev, [name]: updatedValue}));
     };
 
-
     const handleSave = async () => {
         setGeneralError(null);
+
+        if (!user?.id) {
+            setGeneralError("Utente non autenticato.");
+            return;
+        }
 
         if (!formData.name.trim() || !formData.surname.trim()) {
             setGeneralError("Nome e cognome sono obbligatori.");
@@ -147,7 +165,7 @@ export default function AnagraphicPage() {
                     <h1 className="text-3xl lg:text-4xl font-extrabold text-zinc-950 tracking-tight">
                         Profilo Personale
                     </h1>
-                    <p className="text-zinc-500 font-medium">
+                    <p className="text-zinc-500 font-medium text-sm sm:text-base">
                         Gestisci le informazioni del tuo account e le preferenze di sicurezza.
                     </p>
                 </div>
@@ -162,7 +180,7 @@ export default function AnagraphicPage() {
                     {!isEditing ? (
                         <Button
                             onClick={() => setIsEditing(true)}
-                            className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-5 rounded-xl shadow-sm transition-colors text-xs uppercase tracking-wider"
+                            className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-bold px-6 h-11 rounded-xl shadow-sm transition-all text-xs uppercase tracking-wider cursor-pointer"
                         >
                             <Pencil className="mr-2 h-4 w-4"/> Modifica Profilo
                         </Button>
@@ -172,14 +190,14 @@ export default function AnagraphicPage() {
                                 onClick={handleCancel}
                                 variant="outline"
                                 disabled={updateUserMutation.isPending}
-                                className="flex-1 sm:flex-none border-zinc-200 text-zinc-700 hover:bg-zinc-100 py-5 rounded-xl text-xs uppercase tracking-wider font-bold"
+                                className="flex-1 sm:flex-none border-zinc-200 text-zinc-700 hover:bg-zinc-100 h-11 rounded-xl text-xs uppercase tracking-wider font-bold cursor-pointer"
                             >
                                 <X className="mr-2 h-4 w-4"/> Annulla
                             </Button>
                             <Button
                                 onClick={handleSave}
                                 disabled={updateUserMutation.isPending}
-                                className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white font-bold py-5 px-6 rounded-xl shadow-sm disabled:opacity-60 text-xs uppercase tracking-wider"
+                                className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 px-6 rounded-xl shadow-sm disabled:opacity-60 text-xs uppercase tracking-wider cursor-pointer"
                             >
                                 {updateUserMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> :
                                     <Save className="mr-2 h-4 w-4"/>}
@@ -198,8 +216,8 @@ export default function AnagraphicPage() {
                 </div>
             )}
 
-            <Card className="border border-zinc-200 bg-white p-0 shadow-lg rounded-3xl relative w-full overflow-hidden">
-                <div className="h-3 bg-gradient-to-r from-red-700 via-red-600 to-red-700"/>
+            <Card className="border border-zinc-200 bg-white p-0 shadow-xl rounded-3xl relative w-full overflow-hidden">
+                <div className="h-3 bg-gradient-to-r from-red-700 via-red-600 to-orange-500"/>
 
                 <CardContent className="p-6 sm:p-8 lg:p-10">
                     <div className="flex flex-col lg:flex-row gap-8 items-start">
@@ -218,18 +236,19 @@ export default function AnagraphicPage() {
                                     </div>
                                 )}
                                 <div
-                                    className="absolute -bottom-2 -right-2 bg-green-500 p-2 rounded-full border-4 border-white shadow-sm">
+                                    className="absolute -bottom-2 -right-2 bg-emerald-500 p-2 rounded-full border-4 border-white shadow-sm">
                                     <ShieldCheck className="w-4 h-4 text-white"/>
                                 </div>
                             </div>
                             <span
-                                className="mt-3 text-xs font-bold text-zinc-400 uppercase tracking-widest">{session?.user.name}</span>
+                                className="mt-3 text-xs font-bold text-zinc-400 uppercase tracking-widest">{user?.name}</span>
                         </div>
 
                         <div className="flex-1 w-full space-y-6">
                             <div className="bg-zinc-50/50 p-6 rounded-2xl border border-zinc-100 space-y-6">
-                                <h3 className="text-base font-bold text-zinc-900 border-l-4 border-red-600 pl-3">Informazioni
-                                    Personali</h3>
+                                <h3 className="text-base font-bold text-zinc-900 border-l-4 border-red-600 pl-3">
+                                    Informazioni Personali
+                                </h3>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <Field
@@ -269,7 +288,7 @@ export default function AnagraphicPage() {
                                             modificabile)
                                         </Label>
                                         <div
-                                            className="bg-white border border-zinc-200 px-4 py-3 rounded-xl min-h-[44px] flex items-center text-sm text-zinc-700 uppercase break-all overflow-hidden">
+                                            className="bg-white border border-zinc-200 px-4 py-3 rounded-xl min-h-[44px] flex items-center text-sm text-zinc-700 uppercase break-all overflow-hidden font-medium">
                                             {user?.email || "N/D"}
                                         </div>
                                     </div>
@@ -286,8 +305,9 @@ export default function AnagraphicPage() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-1.5 w-full">
                                             <Label htmlFor="currentPassword"
-                                                   className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Password
-                                                Attuale</Label>
+                                                   className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                                                Password Attuale
+                                            </Label>
                                             <Input
                                                 id="currentPassword"
                                                 name="currentPassword"
@@ -300,8 +320,9 @@ export default function AnagraphicPage() {
                                         </div>
                                         <div className="space-y-1.5 w-full">
                                             <Label htmlFor="newPassword"
-                                                   className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Nuova
-                                                Password (opzionale)</Label>
+                                                   className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                                                Nuova Password (opzionale)
+                                            </Label>
                                             <Input
                                                 id="newPassword"
                                                 name="newPassword"

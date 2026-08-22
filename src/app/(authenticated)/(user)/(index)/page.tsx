@@ -8,8 +8,17 @@ import Link from "next/link";
 import {AthleteDocumentAlert} from "@/components/user/athlete-document-alert";
 
 export default function Home() {
+
     const {data: session, isPending: isSessionLoading} = authClient.useSession();
-    const user = session?.user as any;
+    const user = session?.user as {
+        createdAt: Date,
+        email: string,
+        emailVerified: boolean,
+        id: string,
+        image?: string | null | undefined,
+        name: string,
+        updatedAt: Date
+    };
 
     const {
         data: stats,
@@ -33,9 +42,8 @@ export default function Home() {
     return (
         <div className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-10 space-y-8 animate-in fade-in duration-500">
             <div className="flex flex-col gap-1">
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 tracking-tight">Bentornato, {session?.user?.name}</h1>
-                <p className="text-zinc-500 font-medium text-sm sm:text-base">Panoramica operativa del portale Black
-                    Bulls Volley.</p>
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 tracking-tight">Bentornato, {session?.user?.name.toUpperCase()}</h1>
+                <p className="text-zinc-500 font-medium text-sm sm:text-base">Panoramica utente.</p>
             </div>
 
             {athletes.map((athlete) => (
