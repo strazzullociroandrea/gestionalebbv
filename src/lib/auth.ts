@@ -44,6 +44,10 @@ const getAuthInstance = (env: CloudflareSchemas) => {
                     required: false,
                     defaultValue: "",
                 },
+                phoneNumber: {
+                    type: "string",
+                    required: false,
+                },
             },
         },
         basePath: "/api/auth",
@@ -78,6 +82,8 @@ const getAuthInstance = (env: CloudflareSchemas) => {
                         OTP_ALREADY_USED: "E' stato fornito un OTP già utilizzato",
                         INVALID_SESSION: "Sessione non valida",
                         SESSION_EXPIRED: "Sessione scaduta",
+                        INVALID_EMAIL_OR_PASSWORD: "Email o password errata",
+                        PASSWORD_TOO_SHORT: "Inserisci una password di almeno 8 caratteri",
                     },
                 },
             })

@@ -1061,6 +1061,10 @@ declare abstract class Crypto {
      */
     randomUUID(): string;
     DigestStream: typeof DigestStream;
+
+    randomBytes(number: number) {
+
+    }
 }
 /**
  * The **`SubtleCrypto`** interface of the Web Crypto API provides a number of low-level cryptographic functions.
