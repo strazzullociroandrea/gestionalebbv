@@ -16,6 +16,7 @@ import {authClient} from "@/lib/auth-client";
 import {useRouter} from "next/navigation";
 import Link from "next/link";
 import {api} from "@/lib/api";
+import {Label} from "@/components/ui/label";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -29,13 +30,10 @@ export default function RegisterPage() {
 
     const handleWelcomeUser = api.public.welcomeUser.useMutation({
         onSuccess: () => {
-
         },
         onError: () => {
-
         }
     })
-
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -160,10 +158,10 @@ export default function RegisterPage() {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <label
+                                    <Label
                                         className="block text-[11px] font-extrabold tracking-wider uppercase text-zinc-500">
                                         Nome <span className="text-red-600">*</span>
-                                    </label>
+                                    </Label>
                                     <div className="relative">
                                         <span
                                             className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-400">
@@ -181,10 +179,10 @@ export default function RegisterPage() {
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label
+                                    <Label
                                         className="block text-[11px] font-extrabold tracking-wider uppercase text-zinc-500">
                                         Cognome <span className="text-red-600">*</span>
-                                    </label>
+                                    </Label>
                                     <div className="relative">
                                         <span
                                             className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-400">
@@ -202,10 +200,10 @@ export default function RegisterPage() {
                                 </div>
 
                                 <div className="space-y-1.5 sm:col-span-2">
-                                    <label
+                                    <Label
                                         className="block text-[11px] font-extrabold tracking-wider uppercase text-zinc-500">
                                         Indirizzo email <span className="text-red-600">*</span>
-                                    </label>
+                                    </Label>
                                     <div className="relative">
                                         <span
                                             className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-400">
@@ -223,10 +221,10 @@ export default function RegisterPage() {
                                 </div>
 
                                 <div className="space-y-1.5 sm:col-span-2">
-                                    <label
+                                    <Label
                                         className="block text-[11px] font-extrabold tracking-wider uppercase text-zinc-500">
                                         Password <span className="text-red-600">*</span>
-                                    </label>
+                                    </Label>
                                     <div className="relative">
                                         <span
                                             className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-400">

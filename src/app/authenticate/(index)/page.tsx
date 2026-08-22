@@ -15,6 +15,8 @@ import {Input} from "@/components/ui/input";
 import Link from "next/link";
 import {authClient} from "@/lib/auth-client";
 import {useRouter} from "next/navigation";
+import {Label} from "@/components/ui/label";
+import {Button} from "@/components/ui/button";
 
 export default function LoginCard() {
     const [email, setEmail] = useState("");
@@ -34,11 +36,15 @@ export default function LoginCard() {
                 password,
             });
 
+            if (error) {
+                setError(error.message || "");
+            }
+
             if (data) {
                 router.push("/");
             }
 
-        } catch (err: any) {
+        } catch (err) {
             setError("Credenziali non valide o errore di autenticazione.");
         } finally {
             setLoading(false);
@@ -80,10 +86,10 @@ export default function LoginCard() {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label
+                        <Label
                             className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1.5">
                             Indirizzo Email / Username
-                        </label>
+                        </Label>
                         <div className="relative">
                             <span
                                 className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
@@ -101,10 +107,10 @@ export default function LoginCard() {
                     </div>
 
                     <div>
-                        <label
+                        <Label
                             className="block text-[10px] font-bold tracking-wider uppercase text-muted-foreground mb-1.5">
                             Password
-                        </label>
+                        </Label>
                         <div className="relative">
                             <span
                                 className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
@@ -121,14 +127,14 @@ export default function LoginCard() {
                         </div>
                     </div>
 
-                    <button
+                    <Button
                         type="submit"
                         disabled={loading}
-                        className="w-full mt-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-3.5 px-4 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-red-950/40 flex items-center justify-center space-x-2 transition-all active:scale-[0.98] disabled:opacity-50"
+                        className="w-full h-12 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs uppercase tracking-wider shadow-sm flex items-center justify-center space-x-2 transition-all cursor-pointer active:scale-[0.98] disabled:opacity-50"
                     >
                         <span>{loading ? "Elaborazione..." : "Accedi"}</span>
                         {!loading && <ArrowRight className="w-4 h-4"/>}
-                    </button>
+                    </Button>
 
                     <div className="mt-4 text-center">
                         <Link href="/authenticate/register"
@@ -141,7 +147,10 @@ export default function LoginCard() {
                 <div className="mt-5 pt-6 border-t border-border/80 text-center">
                     <p className="text-[11px] text-muted-foreground flex items-center justify-center gap-1.5">
                         <ShieldCheck className="w-3.5 h-3.5 text-red-500"/>
-                        <span>Per qualsiasi problema contatta la segreteria.</span>
+                        <Link href="/authenticate/forgot-password"
+                              className="text-xs text-muted-foreground hover:text-red-400 transition-colors inline-block">
+                            Hai dimenticato la password? <span className="underline font-semibold">Recuperala</span>
+                        </Link>
                     </p>
                 </div>
 
