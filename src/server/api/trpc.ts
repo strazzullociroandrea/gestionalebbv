@@ -57,10 +57,10 @@ const isAdminMiddleware = t.middleware(({ctx, next}) => {
 });
 
 const isAdministrativeMiddleware = t.middleware(({ctx, next}) => {
-    if (ctx.session?.user.role !== "administrative") {
+    if (ctx.session?.user.role !== "administrative" && ctx.session?.user.role !== "admin") {
         throw new TRPCError({
             code: "UNAUTHORIZED",
-            message: "Accesso non autorizzato. Devi essere un membro segreteria.",
+            message: "Accesso non autorizzato. Devi essere un amministrativo o un admin.",
         });
     }
     return next({
