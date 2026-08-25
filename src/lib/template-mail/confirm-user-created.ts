@@ -8,7 +8,10 @@ Da questo momento puoi accedere alla tua area riservata per registrare e gestire
 ${url}
 
 ⚠️ Nota importante:
-Qualora uno o più atleti risultino già esistenti nel sistema, ti invitiamo a scriverci direttamente a ciro.blackbullsvolley@gmail.com per ricevere supporto e procedere con l'associazione corretta.
+Qualora uno o più atleti risultino già esistenti nel sistema, ti invitiamo a scriverci direttamente a ciro.blackbullsvolley@gmail.com indicando:
+    - Nome e Cognome dell'atleta
+    - Data di nascita dell'atleta
+Ti supporteremo noi nel verificare la situazione e procedere con l'associazione al tuo account in totale sicurezza.
 
 A presto,
 ASD Club Black Bulls Volley
