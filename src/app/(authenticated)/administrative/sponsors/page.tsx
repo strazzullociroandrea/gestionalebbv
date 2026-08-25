@@ -1,6 +1,6 @@
 "use client";
 import {api} from "@/lib/api";
-import {Loader2, Building2, Search, Plus, Mail, Phone, RefreshCw, Pencil} from "lucide-react";
+import {Loader2, Building2, Search, Plus, Mail, Phone, RefreshCw, Pencil, Trash2, AlertTriangle} from "lucide-react";
 import {Card} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
@@ -62,6 +62,13 @@ export default function SponsorPage() {
         }
     });
 
+    const handleDeleteMutation = api.administrative.deleteSponsor?.useMutation({
+        onSuccess: async () => {
+            await utils.administrative.getAllSponsor.invalidate();
+            setDeleteSponsorId(null);
+        }
+    });
+
     if (isLoading) {
         return (
             <div className="w-full max-w-6xl mx-auto p-10 flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -108,8 +115,6 @@ export default function SponsorPage() {
     const handleRenew = (sponsorId: string) => {
         if (handleRenewMutation) {
             handleRenewMutation.mutate({idSponsor: sponsorId});
-        } else {
-            console.log("Rinnova sponsor per la stagione corrente:", sponsorId);
         }
     };
 
@@ -134,19 +139,53 @@ export default function SponsorPage() {
                 phone: editPhone,
                 description: editDesc
             });
-        } else {
-            console.log("Aggiorna sponsor:", {id: editingSponsor.id, editName, editEmail, editPhone, editDesc});
-            setIsEditOpen(false);
         }
     };
 
-    const handleDelete = (id: string) => {
-        console.log("Elimina sponsor con id:", id);
-        setDeleteSponsorId(null);
+    const handleDelete = () => {
+        if (!deleteSponsorId) return;
+        if (handleDeleteMutation) {
+            handleDeleteMutation.mutate({id: deleteSponsorId});
+        } else {
+            setDeleteSponsorId(null);
+        }
     };
 
     return (
         <div className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-10 space-y-8 animate-in fade-in duration-500">
+
+            <Dialog open={Boolean(deleteSponsorId)} onOpenChange={(val) => !val && setDeleteSponsorId(null)}>
+                <DialogContent className="sm:max-w-md w-[95%] rounded-3xl border border-zinc-200 bg-white p-6 shadow-xl">
+                    <DialogHeader className="space-y-1">
+                        <DialogTitle className="text-xl font-extrabold text-zinc-950 tracking-tight">
+                            Elimina Sponsor
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-zinc-500 font-medium">
+                            Sei sicuro di voler eliminare questo sponsor? L'azione è irreversibile.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <DialogFooter className="flex-col-reverse sm:flex-row gap-3 pt-4">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setDeleteSponsorId(null)}
+                            className="w-full sm:w-auto rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-100 font-bold text-xs uppercase tracking-wider h-11 px-6 cursor-pointer"
+                        >
+                            Annulla
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={handleDelete}
+                            disabled={handleDeleteMutation?.isPending}
+                            className="w-full sm:w-auto rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider h-11 px-6 shadow-sm cursor-pointer flex items-center justify-center"
+                        >
+                            {handleDeleteMutation?.isPending ? <Loader2 className="w-4 h-4 animate-spin"/> : "Conferma Eliminazione"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex flex-col gap-1">
                     <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 tracking-tight">Sponsor</h1>
@@ -244,7 +283,6 @@ export default function SponsorPage() {
                     </DialogContent>
                 </Dialog>
 
-                {/* MODALE DI MODIFICA */}
                 <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                     <DialogContent
                         className="sm:max-w-md w-[95%] rounded-3xl border border-zinc-200 bg-white p-6 shadow-xl">
@@ -431,12 +469,20 @@ export default function SponsorPage() {
                                                                 variant="ghost"
                                                                 size="icon"
                                                                 onClick={() => handleOpenEdit(sponsor)}
-                                                                className="h-8 w-8 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl cursor-pointer shrink-0"
+                                                                className="h-8 w-8 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl cursor-pointer shrink-0"
                                                                 title="Modifica sponsor"
                                                             >
                                                                 <Pencil className="w-4 h-4"/>
                                                             </Button>
-
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => setDeleteSponsorId(sponsor.id)}
+                                                                className="h-8 w-8 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl cursor-pointer shrink-0"
+                                                                title="Elimina sponsor"
+                                                            >
+                                                                <Trash2 className="w-4 h-4"/>
+                                                            </Button>
                                                         </div>
                                                     </div>
 
