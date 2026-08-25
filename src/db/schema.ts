@@ -68,7 +68,6 @@ export const Team = sqliteTable('Team', {
     id: text().primaryKey(),
     name: text().notNull(),
     subscribePassword: text().notNull(),
-    password: text().notNull(),
     idSeason: text().references(() => SportSeason.id, {onDelete: "cascade"}).notNull(),
 });
 
@@ -83,6 +82,8 @@ export const Athlete = sqliteTable('Athlete', {
     birthPlace: text().notNull(),
     countryBirthPlace: text().notNull(),
     status: text('status', {enum: status}).notNull().default('inactive'),
+    ci: text().notNull(),
+    expiredCI: text().notNull()
 })
 
 export const Notification = sqliteTable('Notification', {
@@ -97,12 +98,19 @@ export const Notification = sqliteTable('Notification', {
 export const Payment = sqliteTable('Payment', {
     id: text().primaryKey(),
     amount: real().notNull(),
-    date: text().default(sql`(CURRENT_TIMESTAMP)`),
     reason: text().notNull(),
+    type: text().notNull(),
+    recipientType: text().notNull(),
+    dueDate: text(),
+    paymentDate: text(),
+    date: text().default(sql`(CURRENT_TIMESTAMP)`),
+    isDraft: integer({mode: "boolean"}).default(false).notNull(),
     idAthlete: text().references(() => Athlete.id, {onDelete: "cascade"}),
     idSponsor: text().references(() => Sponsor.id, {onDelete: "cascade"}),
+    idUser: text(),
+    externalEntityName: text(),
     idSeason: text().references(() => SportSeason.id, {onDelete: "cascade"}).notNull(),
-})
+});
 
 export const Sponsor = sqliteTable('Sponsor', {
     id: text().primaryKey(),
@@ -113,15 +121,15 @@ export const Sponsor = sqliteTable('Sponsor', {
 })
 
 export const ToSponsor = sqliteTable('ToSponsor', {
-    idSeason: text().references(() => SportSeason.id),
-    idSponsor: text().references(() => Sponsor.id),
+    idSeason: text().references(() => SportSeason.id, {onDelete: "cascade"}),
+    idSponsor: text().references(() => Sponsor.id, {onDelete: "cascade"}),
 }, (table) => ({
     pk: primaryKey({columns: [table.idSeason, table.idSponsor]}),
 }))
 
 export const IsIn = sqliteTable('IsIn', {
-    idTeam: text().references(() => Team.id),
-    idAthlete: text().references(() => Athlete.id),
+    idTeam: text().references(() => Team.id, {onDelete: "cascade"}),
+    idAthlete: text().references(() => Athlete.id, {onDelete: "cascade"}),
 }, (table) => ({
     pk: primaryKey({columns: [table.idTeam, table.idAthlete]}),
 }))
@@ -135,12 +143,12 @@ export const Championship = sqliteTable('Championship', {
     name: text().notNull(),
     sportsCommittee: text('sportsCommittee', {enum: commitee}).notNull(),
     idTeam:
-        text().references(() => Team.id),
+        text().references(() => Team.id, {onDelete: "cascade"}),
 })
 
 export const Associate = sqliteTable('Associate', {
-    userId: text().references(() => User.id),
-    athleteId: text().references(() => Athlete.id),
+    userId: text().references(() => User.id, {onDelete: "cascade"}),
+    athleteId: text().references(() => Athlete.id, {onDelete: "cascade"}),
 }, (table) => ({
-    pk: primaryKey({columns: [table.userId, table.athleteId]}), // Aggiunta la chiave primaria composta
+    pk: primaryKey({columns: [table.userId, table.athleteId]}),
 }));

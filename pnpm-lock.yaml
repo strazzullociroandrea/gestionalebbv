@@ -7618,7 +7618,7 @@ snapshots:
       react-dom: 19.2.8(react@19.2.8)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
-      - '@opentelemetry/api.ts'
+      - '@opentelemetry/api'
 
   better-call@1.3.7(zod@3.25.76):
     dependencies:
