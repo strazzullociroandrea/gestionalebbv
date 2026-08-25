@@ -47,7 +47,6 @@ export default function TeamDetailPage() {
                     <User className="mr-2 h-4 w-4"/>
                     Anagrafica
                 </Button>
-
                 <Button
                     variant={activeTab === "atleti" ? "default" : "ghost"}
                     onClick={() => setActiveTab("atleti")}
@@ -64,7 +63,6 @@ export default function TeamDetailPage() {
 
             {activeTab === "anagrafica" && (
                 <UserInfo idUser={idUser}/>
-
             )}
 
             {activeTab === "atleti" && (

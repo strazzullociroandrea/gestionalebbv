@@ -75,7 +75,7 @@ export default function UsersPage() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {filteredUsers.map((user: { id: string; name: string; surname: string; email: string }) => (
+                        {filteredUsers.map((user) => (
                             <Link key={user.id} href={`/administrative/users/${user.id}`} className="group block">
                                 <Card
                                     className="rounded-2xl border border-zinc-200 shadow-sm bg-white p-5 transition-all duration-300 group-hover:border-red-600/50 group-hover:shadow-md flex flex-col justify-between h-full space-y-4">
