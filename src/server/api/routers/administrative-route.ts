@@ -1,9 +1,25 @@
-import {administrativeProcedure, adminProcedure, createTRPCRouter, userProcedure} from "@/server/api/trpc";
+import {administrativeProcedure, adminProcedure, createTRPCRouter} from "@/server/api/trpc";
 import {z} from "zod";
-import {Associate, Athlete, IsIn, Sponsor, SportSeason, Team, ToSponsor, User, Session} from "@/db/schema";
+import {
+    Associate,
+    Athlete,
+    IsIn,
+    Sponsor,
+    SportSeason,
+    Team,
+    ToSponsor,
+    User,
+    Session,
+    Championship, Account, Verification
+} from "@/db/schema";
 import {eq, and, ne, desc, notInArray, or} from "drizzle-orm";
 import {TRPCError} from "@trpc/server";
-
+import {createAdministrativeUser} from "@/lib/template-mail/create-administrative-user";
+import {sendEmail} from "@/lib/send-mail";
+import {hashPassword} from "better-auth/crypto";
+import {auth} from "@/lib/auth";
+import {getRequestContext} from "@cloudflare/next-on-pages";
+import {CloudflareSchemas} from "@/lib/schemas/cloudflare-schemas"; // O dai moduli interni di auth
 
 export const AdministrativeRoute = createTRPCRouter({
     getSeason: administrativeProcedure.input(z.void())
@@ -172,7 +188,7 @@ export const AdministrativeRoute = createTRPCRouter({
     getAllAthletes: administrativeProcedure
         .input(
             z.object({
-                idUser: z.string().min(1, "Attenzione! L'id dell'utente non è valido."),
+                idUser: z.string().min(1, "Attenzione! L'id dell'utente non è valido.").nullable(),
             })
         )
         .query(async ({input, ctx}) => {
@@ -433,7 +449,13 @@ export const AdministrativeRoute = createTRPCRouter({
                     .innerJoin(IsIn, eq(Athlete.id, IsIn.idAthlete))
                     .where(eq(IsIn.idTeam, idTeam));
 
-                return {teamInfo, athletes};
+                const championships = await ctx.db
+                    .select({Championship})
+                    .from(Championship)
+                    .where(eq(Championship.idTeam, teamInfo[0].team.id))
+
+
+                return {teamInfo, athletes, championships};
 
             } catch (error) {
                 console.error("[GETINFOTEAM API ERROR] ", error);
@@ -546,12 +568,11 @@ export const AdministrativeRoute = createTRPCRouter({
             userId: z.string(),
             name: z.string().min(2, "Il nome deve essere composto da almeno 2 caratteri.").max(100, "Il nome non può superare i 100 caratteri."),
             surname: z.string().min(2, "Il cognome deve essere composto da almeno 2 caratteri.").max(100, "Il cognome non può superare i 100 caratteri."),
-            phoneNumber: z.string().min(5, "Il numero di telefono deve essere composto da almeno 5 caratteri.").max(20, "Il numero di telefono non può superare i 20 caratteri."),
+            phoneNumber: z.string().nullable(),
             email: z.email("L'email inserita non è valida.").max(100, "L'email non può superare i 100 caratteri."),
         }))
         .mutation(async ({ctx, input}) => {
             try {
-
 
                 const {userId, name, surname, phoneNumber, email} = input;
 
@@ -933,24 +954,32 @@ export const AdministrativeRoute = createTRPCRouter({
         }))
         .mutation(async ({ctx, input}) => {
             try {
+                const {env} = getRequestContext() as unknown as { env: CloudflareSchemas };
+                const authInstance = auth(env);
+                const tempPassword = crypto.randomUUID().slice(0, 12);
 
-                const isExistingUser = await ctx.db.select().from(User).where(eq(User.email, input.email)).limit(1);
+                const newUser = await authInstance.api.signUpEmail({
+                    body: {
+                        email: input.email,
+                        password: tempPassword,
+                        name: input.username.toUpperCase(),
+                        surname: input.surname.toUpperCase(),
+                        role: "administrative",
+                        phoneNumber: input.phone
+                    }
+                });
 
-                if (isExistingUser.length > 0) {
+                if (!newUser) {
                     throw new TRPCError({
-                        code: "CONFLICT",
-                        message: "L'utente con questa email esiste già.",
+                        code: "INTERNAL_SERVER_ERROR",
+                        message: "Impossibile registrare l'utente.",
                     });
                 }
 
-                await ctx.db.insert(User).values({
-                    id: crypto.randomUUID(),
-                    name: input.username,
-                    surname: input.surname,
-                    email: input.email,
-                    phoneNumber: input.phone,
-                    role: "administrative"
-                });
+
+                const mailContent = createAdministrativeUser(input.username, input.email, tempPassword, "http://localhost:8788");
+
+                await sendEmail(input.email, "Creazione Account Amministrativo", "text", mailContent);
 
                 return {success: true};
 
@@ -1061,6 +1090,7 @@ export const AdministrativeRoute = createTRPCRouter({
                 await ctx.db.delete(Session).where(eq(Session.userId, input.id));
 
                 return {success: true};
+
             } catch (error) {
                 console.error("[DELETE ADMINISTRATIVE PROFILE API ERROR] ", error);
 
@@ -1074,5 +1104,236 @@ export const AdministrativeRoute = createTRPCRouter({
                 });
             }
         }),
+    addTeamChampionship: administrativeProcedure
+        .input(z.object({
+            idTeam: z.string(),
+            name: z.string(),
+            organizer: z.enum(["FIPAV", "CSI", "PGS", "VolleyCup"]),
+            isPaid: z.boolean()
+        }))
+        .mutation(async ({input, ctx}) => {
+
+            try {
+
+                await ctx.db.insert(Championship)
+                    .values({
+                        id: crypto.randomUUID(),
+                        paid: input.isPaid,
+                        name: input.name,
+                        sportsCommittee: input.organizer,
+                        idTeam: input.idTeam
+                    })
+
+                return {success: true}
+
+            } catch (error) {
+                console.error("[ADD TEAM CHAMPIONSHIP API ERROR] ", error);
+
+                if (error instanceof TRPCError) {
+                    throw error;
+                }
+
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Attenzione. Non è stato possibile associare il campionato alla squadra.",
+                });
+            }
+        }),
+    removeTeamChampionship: administrativeProcedure
+        .input(z.object({
+            id: z.string()
+        }))
+        .mutation(async ({input, ctx}) => {
+            try {
+
+                await ctx.db.delete(Championship)
+                    .where(eq(Championship.id, input.id)).limit(1);
+
+            } catch (error) {
+                console.error("[REMOVE TEAM CHAMPIONSHIP API ERROR] ", error);
+
+                if (error instanceof TRPCError) {
+                    throw error;
+                }
+
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Attenzione. Non è stato possibile rimuovere il campionato dalla squadra.",
+                });
+            }
+        }),
+
+    editChampionship: administrativeProcedure
+        .input(z.object({
+            id: z.string(),
+            name: z.string(),
+            organizer: z.enum(["FIPAV", "CSI", "PGS", "VolleyCup"]),
+            isPaid: z.boolean()
+        }))
+        .mutation(async ({input, ctx}) => {
+            try {
+
+                const exist = await ctx.db.select().from(Championship).where(eq(Championship.id, input.id)).limit(1);
+
+                if (exist.length === 0) {
+                    throw new TRPCError({
+                        code: "NOT_FOUND",
+                        message: "Attenzione! Il campionato selezionato non esiste o è stato rimosso.",
+                    })
+                }
+
+                await ctx.db.update(Championship)
+                    .set({
+                        name: input.name,
+                        sportsCommittee: input.organizer,
+                        paid: input.isPaid
+                    })
+                    .where(eq(Championship.id, input.id)).limit(1);
+
+                return {success: true}
+
+            } catch (error) {
+                console.error("[EDIT TEAM CHAMPIONSHIP API ERROR] ", error);
+
+                if (error instanceof TRPCError) {
+                    throw error;
+                }
+
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Attenzione. Non è stato possibile modificare il campionato della squadra.",
+                });
+            }
+        }),
+    deleteTeam: administrativeProcedure
+        .input(z.object({
+            idTeam: z.string()
+        }))
+        .mutation(async ({input, ctx}) => {
+            try {
+
+                const {idTeam} = input;
+
+                const existingTeam = await ctx.db.select().from(Team).where(eq(Team.id, idTeam)).limit(1);
+
+                if (existingTeam.length === 0) {
+                    throw new TRPCError({
+                        code: "NOT_FOUND",
+                        message: "Attenzione! La squadra selezionata non esiste o è stata rimossa.",
+                    });
+                }
+
+                await ctx.db.delete(Team).where(eq(Team.id, idTeam)).limit(1);
+
+                return {success: true}
+
+            } catch (error) {
+                console.error("[DELETE TEAM API ERROR] ", error);
+
+                if (error instanceof TRPCError) {
+                    throw error;
+                }
+
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Attenzione. Non è stato possibile eliminare la squadra.",
+                });
+            }
+        }),
+    deleteSponsor: administrativeProcedure
+        .input(z.object({
+            id: z.string()
+        })).mutation(async ({input, ctx}) => {
+            try {
+
+                const {id} = input;
+
+                const existingSponsor = await ctx.db.select().from(Sponsor).where(eq(Sponsor.id, id)).limit(1);
+
+                if (existingSponsor.length === 0) {
+                    throw new TRPCError({
+                        code: "NOT_FOUND",
+                        message: "Attenzione! Lo sponsor selezionato non esiste o è stato rimosso.",
+                    });
+                }
+
+                await ctx.db.delete(Sponsor).where(eq(Sponsor.id, id)).limit(1);
+
+                return {success: true}
+
+            } catch (error) {
+                console.error("[DELETE SPONSOR API ERROR] ", error);
+
+                if (error instanceof TRPCError) {
+                    throw error;
+                }
+
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Attenzione. Non è stato possibile eliminare lo sponsor selezionato.",
+                });
+            }
+        }),
+    deleteAthleteProfile: administrativeProcedure
+        .input(z.object({
+            id: z.string()
+        }))
+        .mutation(async ({input, ctx}) => {
+            try {
+
+                const {id} = input;
+
+                const existingAthlete = await ctx.db.select().from(Athlete).where(eq(Athlete.id, id)).limit(1);
+
+                if (existingAthlete.length === 0) {
+                    throw new TRPCError({
+                        code: "NOT_FOUND",
+                        message: "Attenzione! L'atleta selezionato non esiste o è stato rimosso.",
+                    });
+                }
+
+                await ctx.db.delete(Athlete).where(eq(Athlete.id, id)).limit(1);
+
+                return {success: true}
+
+            } catch (error) {
+                console.error("[DELETE ATHLETE API ERROR] ", error);
+
+                if (error instanceof TRPCError) {
+                    throw error;
+                }
+
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Attenzione. Non è stato possibile eliminare l'atleta selezionato.",
+                });
+            }
+        }),
+    getStats: administrativeProcedure
+        .input(z.void())
+        .query(async ({ctx}) => {
+            try {
+
+                const activeSeason = await ctx.db.select({season: SportSeason.season})
+                    .from(SportSeason)
+                    .where(eq(SportSeason.status, "active"))
+                    .limit(1);
+
+                const totalTeams = await ctx.db.select().from(Team);
+                const totalAthletes = await ctx.db.select().from(Athlete);
+
+                return {
+                    activeSeason: activeSeason[0]?.season || "N/A",
+                    teamNumber: totalTeams.length.toString(),
+                    athleteNumber: totalAthletes.length.toString(),
+                }
+            } catch (error) {
+                console.error("[GET STATS API ERROR] ", error);
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Attenzione. Non è stato possibile recuperare le statistiche.",
+                });
+            }
+        })
 
 })
