@@ -1,12 +1,13 @@
 import {getServerSession} from "@/lib/auth";
 import {redirect} from "next/navigation";
+import {SidebarProvider} from "@/components/ui/sidebar";
 
 export const runtime = "edge";
 
 
 export default async function AuthenticatedLayout({
-                                                children,
-                                            }: Readonly<{
+                                                      children,
+                                                  }: Readonly<{
     children: React.ReactNode;
 }>) {
     const session = await getServerSession();
@@ -18,7 +19,9 @@ export default async function AuthenticatedLayout({
 
     return (
         <>
-            {children}
+            <SidebarProvider>
+                {children}
+            </SidebarProvider>
         </>
     );
 }
