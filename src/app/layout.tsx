@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 
 export const metadata: Metadata = {
     title: "Black Bulls Volley | Gestionale",
-    description: "Gestionale per i Black Bulls Volley",
+    description: "Gestionale sportivo Black Bulls Volley",
     authors: [{name: "Ciro A. Strazzullo", url: "https://cirostrazzullo.it"}]
 };
 
