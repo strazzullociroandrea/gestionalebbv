@@ -1,6 +1,6 @@
 "use client";
 import {Button} from "@/components/ui/button";
-import {AlertTriangle, Loader2, Plus, Mail, Phone, UserCheck, User, Pencil, Trash2, Save, X} from "lucide-react";
+import {AlertTriangle, Loader2, Plus, Mail, Phone, UserCheck, User, Pencil, Trash2} from "lucide-react";
 import {useState} from "react";
 import {
     Dialog,
@@ -13,10 +13,12 @@ import {
 import {Card} from "@/components/ui/card";
 import {api} from "@/lib/api";
 import {InfoField} from "@/components/administrative/info-field";
+import {authClient} from "@/lib/auth-client";
 
 export default function AdministrativeUsersPage() {
     const utils = api.useUtils();
     const [open, setOpen] = useState(false);
+    const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
     const [editingUserId, setEditingUserId] = useState<string | null>(null);
     const [error, setError] = useState("");
 
@@ -30,6 +32,7 @@ export default function AdministrativeUsersPage() {
     const handleDelete = api.administrative.deleteAdministrativeProfile.useMutation({
         onSuccess: async () => {
             await utils.administrative.getAdministrativeUser.invalidate();
+            setDeleteUserId(null);
         },
         onError: (error) => {
             setError(error.message);
@@ -58,7 +61,13 @@ export default function AdministrativeUsersPage() {
         setOpen(true);
     };
 
-    const handleOpenEdit = (user: any) => {
+    const handleOpenEdit = (user: {
+        id: string;
+        name: string;
+        surname: string;
+        email: string;
+        phoneNumber: string | null
+    }) => {
         setEditingUserId(user.id);
         setUsername(user.name || "");
         setUserSurname(user.surname || "");
@@ -88,7 +97,7 @@ export default function AdministrativeUsersPage() {
         }
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
 
@@ -101,12 +110,13 @@ export default function AdministrativeUsersPage() {
                 phoneNumber: userPhone.toUpperCase()
             });
         } else {
+
             createUserHandler.mutate({
                 username: username.toUpperCase(),
-                surname: userSurname.toUpperCase(),
                 email: userEmail,
-                phone: userPhone.toUpperCase()
-            });
+                surname: userSurname.toUpperCase(),
+                phone: userPhone
+            })
         }
     };
 
@@ -124,6 +134,40 @@ export default function AdministrativeUsersPage() {
 
     return (
         <div className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-10 space-y-8 animate-in fade-in duration-500">
+            <Dialog open={Boolean(deleteUserId)} onOpenChange={(val) => !val && setDeleteUserId(null)}>
+                <DialogContent
+                    className="sm:max-w-md w-[95%] rounded-3xl border border-zinc-200 bg-white p-6 shadow-xl">
+                    <DialogHeader className="space-y-1">
+                        <DialogTitle className="text-xl font-extrabold text-zinc-950 tracking-tight">
+                            Elimina Utente
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-zinc-500 font-medium">
+                            Sei sicuro di voler eliminare questo utente della segreteria? L'azione è irreversibile.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <DialogFooter className="flex-col-reverse sm:flex-row gap-3 pt-4">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setDeleteUserId(null)}
+                            className="w-full sm:w-auto rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-100 font-bold text-xs uppercase tracking-wider h-11 px-6 cursor-pointer"
+                        >
+                            Annulla
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={() => deleteUserId && handleDelete.mutate({id: deleteUserId})}
+                            disabled={handleDelete.isPending}
+                            className="w-full sm:w-auto rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider h-11 px-6 shadow-sm cursor-pointer flex items-center justify-center"
+                        >
+                            {handleDelete.isPending ?
+                                <Loader2 className="w-4 h-4 animate-spin"/> : "Conferma Eliminazione"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             <Dialog onOpenChange={handleOpenChange} open={open}>
                 <DialogContent
                     className="sm:max-w-md w-[95%] rounded-3xl border border-zinc-200 bg-white p-6 shadow-xl">
@@ -252,7 +296,7 @@ export default function AdministrativeUsersPage() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {usersList.map((user: any) => (
+                    {usersList.map((user) => (
                         <Card key={user.id}
                               className="rounded-2xl border border-zinc-200 shadow-sm bg-white p-5 transition-all duration-300 hover:border-red-600/50 hover:shadow-md flex flex-col justify-between space-y-4">
                             <div className="space-y-3">
@@ -280,9 +324,7 @@ export default function AdministrativeUsersPage() {
                                             <Pencil className="w-4 h-4"/>
                                         </button>
                                         <button
-                                            onClick={() => {
-                                                handleDelete.mutate({id: user.id})
-                                            }}
+                                            onClick={() => setDeleteUserId(user.id)}
                                             className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
                                             title="Elimina utente"
                                         >
