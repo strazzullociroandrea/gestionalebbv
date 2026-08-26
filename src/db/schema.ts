@@ -88,7 +88,8 @@ export const Athlete = sqliteTable('Athlete', {
 
 export const Notification = sqliteTable('Notification', {
     id: text().primaryKey(),
-    date: text().default(sql`(CURRENT_TIMESTAMP)`),
+    dateCreation: text().default(sql`(CURRENT_TIMESTAMP)`),
+    dateExpiration: text().notNull(),
     text: text().notNull(),
     read: integer({mode: 'boolean'}).notNull().default(true),
     idAdmin: text().references(() => User.id, {onDelete: "cascade"}).notNull(),
