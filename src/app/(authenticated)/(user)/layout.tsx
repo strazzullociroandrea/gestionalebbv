@@ -3,7 +3,6 @@ import {redirect} from "next/navigation";
 import {SidebarUser} from "@/components/user/sidebar";
 import {SidebarTrigger} from "@/components/ui/sidebar";
 
-export const runtime = "edge";
 
 export default async function Layout({
                                          children,
