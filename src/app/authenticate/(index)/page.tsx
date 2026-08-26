@@ -18,6 +18,8 @@ import {useRouter} from "next/navigation";
 import {Label} from "@/components/ui/label";
 import {Button} from "@/components/ui/button";
 
+export const runtime = "edge";
+
 export default function LoginCard() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
