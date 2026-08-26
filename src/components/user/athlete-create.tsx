@@ -23,6 +23,14 @@ import {Label} from "@/components/ui/label";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import CodiceFiscale from "codice-fiscale-js";
 import {api} from "@/lib/api";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle
+} from "@/components/ui/dialog";
 
 interface AthleteCreateProps {
     idUser: string;
@@ -32,7 +40,7 @@ interface AthleteCreateProps {
 }
 
 export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: AthleteCreateProps) => {
-    const [isCreated, setIsCreated] = useState(false);
+    const [open, setOpen] = useState(false);
     const [successMessage, setSuccessMessage] = useState(false);
     const [cfError, setCfError] = useState<string | null>(null);
     const [generalError, setGeneralError] = useState<string | null>(null);
@@ -68,7 +76,7 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
     const createAthleteMutation = api.user.addAthletesToUser.useMutation({
         onSuccess: async (data) => {
             const createdAthleteId = data?.id;
-            setIsCreated(true);
+            setOpen(true);
             setSuccessMessage(true);
             if (createdAthleteId) setIdAthlete(createdAthleteId);
             if (onCreated) onCreated(createdAthleteId);
@@ -192,34 +200,71 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
                                 <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-green-500 shrink-0"/> Salvato
                             </div>
                         )}
-                        {!isCreated ? (
-                            <div className="flex items-center gap-3 w-full sm:w-auto">
-                                <Button
-                                    onClick={handleClear}
-                                    variant="outline"
-                                    className="flex-1 sm:flex-none border-zinc-200 text-zinc-700 hover:bg-zinc-100 py-4 sm:py-5 rounded-xl text-xs sm:text-sm uppercase tracking-wider cursor-pointer"
-                                >
-                                    Svuota
-                                </Button>
-                                <Button
-                                    onClick={handleSave}
-                                    disabled={!isFormValid || createAthleteMutation.isPending}
-                                    className="flex-1 sm:flex-none bg-red-600 hover:bg-red-700 text-white font-semibold py-4 sm:py-5 px-6 rounded-xl shadow-sm disabled:opacity-60 text-xs sm:text-sm uppercase tracking-wider cursor-pointer"
-                                >
-                                    {createAthleteMutation.isPending ?
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/> :
-                                        <UserPlus className="mr-2 h-4 w-4"/>}
-                                    Registra
-                                </Button>
-                            </div>
-                        ) : (
-                            <div
-                                className="text-xs sm:text-sm font-bold text-zinc-900 bg-zinc-100 px-6 py-4 rounded-xl border w-full sm:w-auto text-center">
-                                Registrato correttamente
-                            </div>
-                        )}
+
+                        <div className="flex items-center gap-3 w-full sm:w-auto">
+                            <Button
+                                onClick={handleClear}
+                                variant="outline"
+                                className="flex-1 sm:flex-none border-zinc-200 text-zinc-700 hover:bg-zinc-100 py-4 sm:py-5 rounded-xl text-xs sm:text-sm uppercase tracking-wider cursor-pointer font-bold"
+                            >
+                                Svuota
+                            </Button>
+                            <Button
+                                onClick={handleSave}
+                                disabled={!isFormValid || createAthleteMutation.isPending}
+                                className="flex-1 sm:flex-none bg-red-600 hover:bg-red-700 text-white font-semibold py-4 sm:py-5 px-6 rounded-xl shadow-sm disabled:opacity-60 text-xs sm:text-sm uppercase tracking-wider cursor-pointer"
+                            >
+                                {createAthleteMutation.isPending ?
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/> :
+                                    <UserPlus className="mr-2 h-4 w-4"/>}
+                                Registra
+                            </Button>
+                        </div>
                     </div>
                 </div>
+
+                <Dialog open={open} onOpenChange={setOpen}>
+                    <DialogContent
+                        className="rounded-3xl border border-zinc-200 bg-white p-6 sm:p-8 shadow-2xl sm:max-w-md animate-in fade-in zoom-in-95 duration-300">
+                        <DialogHeader className="space-y-4 text-center">
+                            <div
+                                className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm">
+                                <CheckCircle2 className="h-7 w-7 shrink-0"/>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <DialogTitle className="text-lg font-black uppercase tracking-tight text-zinc-950">
+                                    Atleta registrato con successo!
+                                </DialogTitle>
+                                <DialogDescription className="text-xs font-medium text-zinc-500 leading-relaxed">
+                                    L'operazione è andata a buon fine. Per completare la pratica, segui le indicazioni
+                                    sottostanti.
+                                </DialogDescription>
+                            </div>
+                        </DialogHeader>
+
+                        <div
+                            className="my-2 p-4 rounded-2xl bg-zinc-50 border border-zinc-200/80 text-center space-y-2">
+                            <p className="text-[11px] font-extrabold uppercase tracking-widest text-zinc-700">
+                                Azione richiesta
+                            </p>
+                            <p className="text-xs text-zinc-600 font-medium leading-relaxed">
+                                Si prega di inviare a <span
+                                className="font-bold text-zinc-900 underline">cblackbullsvolley@gmail.com</span> la
+                                copia fronte/retro del documento d'identità dell'atleta.
+                            </p>
+                        </div>
+
+                        <DialogFooter className="sm:justify-center pt-2">
+                            <Button
+                                onClick={() => setOpen(false)}
+                                className="w-full sm:w-auto h-11 bg-red-600 hover:bg-red-700 text-white font-bold px-8 rounded-xl text-xs uppercase tracking-wider shadow-sm transition-all cursor-pointer active:scale-[0.98]"
+                            >
+                                Ho capito, chiudi
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
                 {generalError && (
                     <div
@@ -232,8 +277,9 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div
                         className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 bg-zinc-50/50 p-4 sm:p-6 rounded-2xl border border-zinc-100">
-                        <h3 className="sm:col-span-2 text-base sm:text-lg font-bold text-zinc-900 mb-1 border-l-4 border-red-600 pl-3">Dati
-                            Anagrafici</h3>
+                        <h3 className="sm:col-span-2 text-base sm:text-lg font-bold text-zinc-900 mb-1 border-l-4 border-red-600 pl-3">
+                            Dati Anagrafici
+                        </h3>
                         <Field icon={User} label="Nome *" id="name" value={formData.name}
                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("name", e.target.value)}/>
                         <Field icon={Contact} label="Cognome *" id="surname" value={formData.surname}
@@ -258,8 +304,13 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
                         </div>
 
                         <Field icon={Calendar} label="Data di Nascita *" id="dateOfBirth" value={formData.dateOfBirth}
-                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("dateOfBirth", e.target.value)} type="date"/>                        <Field icon={CreditCard} label="Codice Fiscale *" id="nin" value={formData.nin}
-                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("nin", e.target.value)} error={cfError} maxLength={16}
+                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("dateOfBirth", e.target.value)}
+                               type="date"/>
+
+                        <Field icon={CreditCard} label="Codice Fiscale *" id="nin"
+                               value={formData.nin}
+                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("nin", e.target.value)}
+                               error={cfError} maxLength={16}
                                className="sm:col-span-2"/>
 
                         <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -273,23 +324,27 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
                     </div>
 
                     <div className="space-y-4 sm:space-y-6 bg-zinc-50/50 p-4 sm:p-6 rounded-2xl border border-zinc-100">
-                        <h3 className="text-base sm:text-lg font-bold text-zinc-900 mb-1 border-l-4 border-red-600 pl-3">Luogo
-                            di Nascita</h3>
+                        <h3 className="text-base sm:text-lg font-bold text-zinc-900 mb-1 border-l-4 border-red-600 pl-3">
+                            Luogo di Nascita
+                        </h3>
                         <Field icon={MapPin} label="Comune *" id="birthPlace" value={formData.birthPlace}
                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("birthPlace", e.target.value)}/>
                         <Field icon={Globe} label="Provincia *" id="countryBirthPlace"
                                value={formData.countryBirthPlace}
-                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("countryBirthPlace", e.target.value)} maxLength={2}/>
+                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("countryBirthPlace", e.target.value)}
+                               maxLength={2}/>
                     </div>
 
                     <div className="space-y-4 sm:space-y-6 bg-zinc-50/50 p-4 sm:p-6 rounded-2xl border border-zinc-100">
-                        <h3 className="text-base sm:text-lg font-bold text-zinc-900 mb-1 border-l-4 border-red-600 pl-3">Contatti
-                            e Salute</h3>
-                        <Field icon={MapPin} label="Indirizzo *" id="homeAddress" value={formData.homeAddress}
+                        <h3 className="text-base sm:text-lg font-bold text-zinc-900 mb-1 border-l-4 border-red-600 pl-3">
+                            Contatti e Salute
+                        </h3>
+                        <Field icon={MapPin} label="Indirizzo di residenza (Via e Comune) *" id="homeAddress"
+                               value={formData.homeAddress}
                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("homeAddress", e.target.value)}/>
                         <div className="space-y-1.5 w-full">
-                            <Label className="text-zinc-500 text-xs font-medium flex items-center gap-2 pl-1">
-                                <Mail className="h-3.5 w-3.5 text-zinc-400 shrink-0"/>
+                            <Label className="uppercase text-zinc-500 text-xs font-medium flex items-center gap-2 pl-1">
+                                <Mail className="h-3.5 w-3.5 text-red-600 shrink-0"/>
                                 Email Genitore / Referente
                             </Label>
                             <div

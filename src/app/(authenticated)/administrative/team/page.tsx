@@ -272,7 +272,7 @@ export default function TeamsPage() {
                                             </div>
                                         </div>
                                         <Link
-                                            href={`/administrative/${team.id}`}
+                                            href={`/administrative/team/${team.id}`}
                                             className="size-8 rounded-full bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-400 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all shrink-0"
                                             title="Gestisci squadra"
                                         >

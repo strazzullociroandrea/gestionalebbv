@@ -50,6 +50,9 @@ export const SubscribedTeam = ({idAthlete, idUser}: SubscribedTeamProps) => {
         unsubscribeMutation.mutate({idAthlete, idUser, idTeam: teamId});
     };
 
+
+
+
     return (
         <Card
             className="border border-zinc-200 bg-white text-zinc-900 overflow-hidden p-0 shadow-lg rounded-2xl relative w-full">

@@ -56,6 +56,7 @@ export const SubscriptionTeam = ({
 
     const selectedTeamData = availableTeam?.find((item) => item.Team.id === selectedTeam);
 
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMessage(null);
@@ -73,6 +74,17 @@ export const SubscriptionTeam = ({
             subscibePassword: password,
         });
     };
+
+    if (isActiveLoading || isLoading || handleSubscribe.isPending) {
+        return (
+            <Card
+                className="border-zinc-200 bg-white p-8 sm:p-12 text-center text-zinc-500 shadow-sm rounded-2xl w-full">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-red-600"/>
+                <p className="font-semibold tracking-wide uppercase text-xs">Caricamento in corso...</p>
+            </Card>
+        );
+    }
+
 
     return (
         <Card
