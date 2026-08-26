@@ -977,7 +977,7 @@ export const AdministrativeRoute = createTRPCRouter({
                 }
 
 
-                const mailContent = createAdministrativeUser(input.username, input.email, tempPassword, "http://localhost:8788");
+                const mailContent = createAdministrativeUser(input.username, input.email, tempPassword, "https://gestionale.blackbullsvolley.it");
 
                 await sendEmail(input.email, "Creazione Account Amministrativo", "text", mailContent);
 
