@@ -3,7 +3,6 @@ import "./globals.css";
 import {TRPCReactProvider} from "@/trpc/react";
 import { TooltipProvider } from "@/components/ui/tooltip"
 
-export const runtime = "edge";
 
 export const metadata: Metadata = {
     title: "Black Bulls Volley | Gestionale",
