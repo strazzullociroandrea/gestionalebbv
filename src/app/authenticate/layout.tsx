@@ -1,7 +1,6 @@
 import {getServerSession} from "@/lib/auth";
 import {Suspense} from 'react';
 import {redirect} from "next/navigation";
-export const runtime = 'edge'
 
 export default async function AuthenticateLayout({
                                                      children,
