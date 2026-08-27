@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "deploy": "npx @opennextjs/cloudflare && wrangler pages deploy .vercel/output/static --project-name=gestionalebbv"
+    "deploy": "npx @opennextjs/cloudflare build --output .vercel/output && wrangler pages deploy .vercel/output/static --project-name=gestionalebbv"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
