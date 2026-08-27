@@ -10,7 +10,7 @@
   ],
   "assets": {
     "binding": "ASSETS",
-    "directory": ".vercel/output/static"
+    "directory": ".open-next/assets"
   },
   "images": {
     "binding": "IMAGES"
