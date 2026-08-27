@@ -2,6 +2,7 @@ import {getServerSession} from "@/lib/auth";
 import {Suspense} from 'react';
 import {redirect} from "next/navigation";
 
+
 export default async function AuthenticateLayout({
                                                      children,
                                                  }: Readonly<{
