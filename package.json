@@ -17,7 +17,7 @@
     "@base-ui/react": "^1.7.0",
     "@better-auth/i18n": "^1.7.2",
     "@cloudflare/next-on-pages": "^1.13.16",
-    "@cloudflare/workers-types": "4.20260617.1",
+    "@cloudflare/workers-types": "4.20260702.1",
     "@fontsource-variable/geist": "^5.3.0",
     "@tanstack/react-query": "^5.102.7",
     "@trpc/client": "^11.18.0",
@@ -43,21 +43,20 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
-    "@opennextjs/cloudflare": "1.19.10",
+    "@opennextjs/cloudflare": "^1.20.4",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^20.19.43",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.2.6",
-    "tailwindcss": "^4.3.3",
-    "typescript": "^5.9.3",
-    "wrangler": "4.90.1"
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3",
+    "wrangler": "^4.127.0"
   },
   "pnpm": {
     "overrides": {
-      "esbuild": "0.21.5",
-      "wrangler": "4.90.1"
+      "esbuild": "^0.21.5"
     }
   }
 }
