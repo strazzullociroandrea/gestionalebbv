@@ -3,7 +3,6 @@ import {appRouter} from "@/server/api/root";
 import {createTRPCContext} from "@/server/api/trpc";
 import {getRequestContext} from "@cloudflare/next-on-pages";
 
-export const runtime = "edge";
 
 const handler = async (req: Request) => {
     const {env} = getRequestContext() as unknown as { env: any };
