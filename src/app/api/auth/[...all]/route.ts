@@ -2,8 +2,6 @@ import { getRequestContext } from "@cloudflare/next-on-pages";
 import { auth } from "@/lib/auth";
 import { CloudflareSchemas } from "@/lib/schemas/cloudflare-schemas";
 
-export const runtime = "edge";
-
 const handleRequest = async (request: Request) => {
     try {
         const { env } = getRequestContext() as unknown as { env: CloudflareSchemas };
