@@ -18,10 +18,9 @@ import {createAdministrativeUser} from "@/lib/template-mail/create-administrativ
 import {sendEmail} from "@/lib/send-mail";
 import {hashPassword} from "better-auth/crypto";
 import {auth} from "@/lib/auth";
-import {getRequestContext} from "@cloudflare/next-on-pages";
+import {getCloudflareContext} from "@opennextjs/cloudflare";
 import {CloudflareSchemas} from "@/lib/schemas/cloudflare-schemas";
 
-export const runtime = 'edge';
 
 export const AdministrativeRoute = createTRPCRouter({
     getSeason: administrativeProcedure.input(z.void())
@@ -956,7 +955,7 @@ export const AdministrativeRoute = createTRPCRouter({
         }))
         .mutation(async ({ctx, input}) => {
             try {
-                const {env} = getRequestContext() as unknown as { env: CloudflareSchemas };
+                const {env} = await getCloudflareContext({async: true}) as unknown as { env: CloudflareSchemas };
                 const authInstance = auth(env);
                 const tempPassword = crypto.randomUUID().slice(0, 12);
 

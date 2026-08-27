@@ -1,10 +1,10 @@
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { auth } from "@/lib/auth";
 import { CloudflareSchemas } from "@/lib/schemas/cloudflare-schemas";
 
 const handleRequest = async (request: Request) => {
     try {
-        const { env } = getRequestContext() as unknown as { env: CloudflareSchemas };
+        const { env } = await getCloudflareContext({ async: true }) as unknown as { env: CloudflareSchemas };
         const authInstance = auth(env);
 
         console.log(`[AUTH DEBUG] Richiesta: ${request.method} ${new URL(request.url).pathname}`);
