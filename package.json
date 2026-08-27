@@ -8,7 +8,6 @@
     "start": "next start",
     "lint": "next lint",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
     "dev:cloudflare": "npx @cloudflare/next-on-pages && npx wrangler pages dev .vercel/output/static --d1 calendario_bbv=3a76ae84-07a2-4740-862a-1e2c005c1a40"
