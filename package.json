@@ -52,8 +52,8 @@
   },
   "pnpm": {
     "overrides": {
-      "esbuild": "^0.21.5",
-      "wrangler>esbuild": "^0.21.5"
+      "esbuild": "^0.28.2",
+      "wrangler>esbuild": "^0.28.2"
     }
   }
 }
