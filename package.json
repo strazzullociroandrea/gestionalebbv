@@ -3,12 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npx @cloudflare/next-on-pages && npx wrangler pages dev .vercel/output/static",
-    "build": "next build && npx @cloudflare/next-on-pages",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "deploy": "npx @cloudflare/next-on-pages && npx wrangler pages deploy .vercel/output/static --project-name=gestionalebbv",    "preview": "npx @cloudflare/next-on-pages && npx wrangler pages dev .vercel/output/static",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts"
+    "deploy": "npx @cloudflare/next-on-pages && wrangler pages deploy .vercel/output/static --project-name=gestionalebbv"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
