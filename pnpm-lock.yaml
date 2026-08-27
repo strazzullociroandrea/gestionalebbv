@@ -6,6 +6,7 @@ settings:
 
 overrides:
   esbuild: ^0.21.5
+  wrangler>esbuild: ^0.21.5
 
 importers:
 
@@ -51,10 +52,10 @@ importers:
         specifier: ^2.4.0
         version: 2.4.0
       drizzle-kit:
-        specifier: ^0.31.10
+        specifier: 0.31.10
         version: 0.31.10
       drizzle-orm:
-        specifier: ^0.45.2
+        specifier: 0.45.2
         version: 0.45.2(@cloudflare/workers-types@4.20260702.1)(kysely@0.29.5)
       kysely:
         specifier: ^0.29.5
@@ -100,13 +101,13 @@ importers:
         specifier: ^4.3.3
         version: 4.3.3
       '@types/node':
-        specifier: ^20.19.43
+        specifier: 20.19.43
         version: 20.19.43
       '@types/react':
-        specifier: ^19.2.18
+        specifier: 19.2.18
         version: 19.2.18
       '@types/react-dom':
-        specifier: ^19.2.5
+        specifier: 19.2.5
         version: 19.2.5(@types/react@19.2.18)
       eslint:
         specifier: ^9.39.5

@@ -3,15 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "pnpm run dev:cloudflare",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
-    "dev:cloudflare": "npx @cloudflare/next-on-pages && npx wrangler pages dev .vercel/output/static --d1 calendario_bbv=3a76ae84-07a2-4740-862a-1e2c005c1a40"
+    "deploy": "npx @cloudflare/next-on-pages && wrangler pages deploy .vercel/output/static --project-name=gestionalebbv",
+    "preview": "npx @cloudflare/next-on-pages && wrangler pages dev .vercel/output/static",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -27,8 +25,8 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "codice-fiscale-js": "^2.4.0",
-    "drizzle-kit": "^0.31.10",
-    "drizzle-orm": "^0.45.2",
+    "drizzle-kit": "0.31.10",
+    "drizzle-orm": "0.45.2",
     "kysely": "^0.29.5",
     "kysely-d1": "^0.4.0",
     "lucide-react": "^1.34.0",
@@ -45,9 +43,9 @@
     "@eslint/eslintrc": "^3.3.6",
     "@opennextjs/cloudflare": "^1.20.4",
     "@tailwindcss/postcss": "^4.3.3",
-    "@types/node": "^20.19.43",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.5",
+    "@types/node": "20.19.43",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.2.6",
     "tailwindcss": "4.3.3",
@@ -56,7 +54,8 @@
   },
   "pnpm": {
     "overrides": {
-      "esbuild": "^0.21.5"
+      "esbuild": "^0.21.5",
+      "wrangler>esbuild": "^0.21.5"
     }
   }
 }
