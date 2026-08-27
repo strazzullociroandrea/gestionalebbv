@@ -5,7 +5,7 @@ import {CloudflareSchemas} from "@/lib/schemas/cloudflare-schemas";
 import {D1Database} from "@cloudflare/workers-types";
 import {customSession, emailOTP} from "better-auth/plugins";
 import {headers} from "next/headers";
-import {getRequestContext} from "@cloudflare/next-on-pages";
+import {getCloudflareContext} from "@opennextjs/cloudflare";
 import {i18n} from "@better-auth/i18n";
 
 const getAuthInstance = (env: CloudflareSchemas) => {
@@ -94,7 +94,7 @@ const getAuthInstance = (env: CloudflareSchemas) => {
 export const auth = (env: CloudflareSchemas) => getAuthInstance(env);
 
 export const getServerSession = async () => {
-    const {env} = getRequestContext() as unknown as { env: CloudflareSchemas };
+    const {env} = await getCloudflareContext({async: true}) as unknown as { env: CloudflareSchemas };
     const authInstance = getAuthInstance(env);
 
     const h = new Headers(await headers());

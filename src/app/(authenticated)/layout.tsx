@@ -2,7 +2,6 @@ import {getServerSession} from "@/lib/auth";
 import {redirect} from "next/navigation";
 import {SidebarProvider} from "@/components/ui/sidebar";
 
-export const runtime = "edge";
 
 
 export default async function AuthenticatedLayout({

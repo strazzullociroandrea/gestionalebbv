@@ -7,6 +7,7 @@ import {SubscribedTeam} from "@/components/user/subscribed";
 import {AthleteCreate} from "@/components/user/athlete-create";
 import {authClient} from "@/lib/auth-client";
 
+
 export default function AddAthletePage() {
 
     const [createdId, setCreatedId] = useState<undefined | string>(undefined);
