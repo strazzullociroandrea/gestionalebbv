@@ -7,6 +7,7 @@ import {customSession, emailOTP} from "better-auth/plugins";
 import {headers} from "next/headers";
 import {getRequestContext} from "@cloudflare/next-on-pages";
 import {i18n} from "@better-auth/i18n";
+export const runtime = 'edge';
 
 const getAuthInstance = (env: CloudflareSchemas) => {
     const databaseBinding = (env as any).gestionale_bbv;

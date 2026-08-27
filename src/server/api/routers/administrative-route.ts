@@ -19,7 +19,9 @@ import {sendEmail} from "@/lib/send-mail";
 import {hashPassword} from "better-auth/crypto";
 import {auth} from "@/lib/auth";
 import {getRequestContext} from "@cloudflare/next-on-pages";
-import {CloudflareSchemas} from "@/lib/schemas/cloudflare-schemas"; // O dai moduli interni di auth
+import {CloudflareSchemas} from "@/lib/schemas/cloudflare-schemas";
+
+export const runtime = 'edge';
 
 export const AdministrativeRoute = createTRPCRouter({
     getSeason: administrativeProcedure.input(z.void())
