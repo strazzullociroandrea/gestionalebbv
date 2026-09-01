@@ -13,7 +13,7 @@ Puoi effettuare il login utilizzando le seguenti credenziali provvisorie:
 Per accedere all'area amministrativa, clicca sul seguente link: ${url}
     
  ⚠️ Nota importante:
-Le credenziali fornite sono temporanee. Ti invitiamo a modificare la password al primo accesso per garantire la sicurezza del tuo account.
+Le credenziali fornite sono generate automaticamente. Ti invitiamo a modificare la password al primo accesso per garantire la sicurezza del tuo account.
 
 A presto,
 ASD Club Black Bulls Volley

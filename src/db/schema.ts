@@ -35,6 +35,7 @@ export const Account = sqliteTable('Account', {
     refreshTokenExpiresAt: text(),
     scope: text(),
     password: text(),
+    issuer: text(),
     createdAt: text().default(sql`(CURRENT_TIMESTAMP)`),
     updatedAt: text(),
 });
