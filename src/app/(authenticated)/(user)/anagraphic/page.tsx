@@ -29,7 +29,6 @@ export default function AnagraphicPage() {
     const router = useRouter();
     const {data: session, isPending: isSessionLoading} = authClient.useSession();
 
-    // Tipizzazione sicura per includere i campi custom di Better Auth
     const user = session?.user as {
         createdAt: Date;
         email: string;
@@ -151,7 +150,8 @@ export default function AnagraphicPage() {
 
     if (isSessionLoading) {
         return (
-            <div className="w-full max-w-5xl mx-auto p-10 flex flex-col items-center justify-center min-h-[60vh] gap-4">
+            <div
+                className="w-full max-w-5xl mx-auto px-4 py-12 flex flex-col items-center justify-center min-h-[60vh] gap-4">
                 <Loader2 className="w-10 h-10 text-red-600 animate-spin"/>
                 <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Caricamento profilo...</p>
             </div>
@@ -159,28 +159,29 @@ export default function AnagraphicPage() {
     }
 
     return (
-        <div className="w-full max-w-5xl mx-auto p-4 sm:p-6 lg:p-10 space-y-8 animate-in fade-in duration-500">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div
+            className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8 animate-in fade-in duration-500">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="flex flex-col gap-1">
-                    <h1 className="text-3xl lg:text-4xl font-extrabold text-zinc-950 tracking-tight">
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-zinc-950 tracking-tight">
                         Profilo Personale
                     </h1>
-                    <p className="text-zinc-500 font-medium text-sm sm:text-base">
+                    <p className="text-zinc-500 font-medium text-xs sm:text-sm lg:text-base">
                         Gestisci le informazioni del tuo account e le preferenze di sicurezza.
                     </p>
                 </div>
 
-                <div className="w-full sm:w-auto flex items-center gap-3">
+                <div className="w-full md:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     {successMessage && (
                         <div
-                            className="flex items-center text-xs sm:text-sm font-medium text-green-700 bg-green-50 px-4 py-2.5 rounded-xl border border-green-200">
-                            <CheckCircle2 className="h-4 w-4 mr-2 text-green-500 shrink-0"/> Salvato con successo
+                            className="flex items-center justify-center text-xs sm:text-sm font-medium text-emerald-700 bg-emerald-50 px-4 py-2.5 rounded-xl border border-emerald-200">
+                            <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-500 shrink-0"/> Salvato con successo
                         </div>
                     )}
                     {!isEditing ? (
                         <Button
                             onClick={() => setIsEditing(true)}
-                            className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-bold px-6 h-11 rounded-xl shadow-sm transition-all text-xs uppercase tracking-wider cursor-pointer"
+                            className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-bold px-6 h-11 rounded-xl shadow-md hover:shadow-lg transition-all text-xs uppercase tracking-wider cursor-pointer"
                         >
                             <Pencil className="mr-2 h-4 w-4"/> Modifica Profilo
                         </Button>
@@ -197,7 +198,7 @@ export default function AnagraphicPage() {
                             <Button
                                 onClick={handleSave}
                                 disabled={updateUserMutation.isPending}
-                                className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 px-6 rounded-xl shadow-sm disabled:opacity-60 text-xs uppercase tracking-wider cursor-pointer"
+                                className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 px-6 rounded-xl shadow-md hover:shadow-lg disabled:opacity-60 text-xs uppercase tracking-wider cursor-pointer"
                             >
                                 {updateUserMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> :
                                     <Save className="mr-2 h-4 w-4"/>}
@@ -212,16 +213,17 @@ export default function AnagraphicPage() {
                 <div
                     className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 text-xs sm:text-sm font-medium flex items-center gap-2">
                     <ShieldAlert className="h-4 w-4 shrink-0 text-red-600"/>
-                    {generalError}
+                    <span>{generalError}</span>
                 </div>
             )}
 
-            <Card className="border border-zinc-200 bg-white p-0 shadow-xl rounded-3xl relative w-full overflow-hidden">
-                <div className="h-3 bg-gradient-to-r from-red-700 via-red-600 to-orange-500"/>
+            <Card
+                className="border border-zinc-200/80 bg-white p-0 shadow-xl rounded-3xl relative w-full overflow-hidden">
+                <div className="h-2.5 sm:h-3 bg-gradient-to-r from-red-700 via-red-600 to-orange-500"/>
 
-                <CardContent className="p-6 sm:p-8 lg:p-10">
-                    <div className="flex flex-col lg:flex-row gap-8 items-start">
-                        <div className="shrink-0 mx-auto lg:mx-0 flex flex-col items-center">
+                <CardContent className="p-5 sm:p-8 lg:p-10">
+                    <div className="flex flex-col lg:flex-row gap-8 items-center lg:items-start">
+                        <div className="shrink-0 flex flex-col items-center">
                             <div className="relative group">
                                 {user?.image ? (
                                     <img
@@ -241,16 +243,18 @@ export default function AnagraphicPage() {
                                 </div>
                             </div>
                             <span
-                                className="mt-3 text-xs font-bold text-zinc-400 uppercase tracking-widest">{user?.name}</span>
+                                className="mt-3 text-xs font-bold text-zinc-400 uppercase tracking-widest text-center max-w-[160px] truncate">
+                                {user?.name || "Utente"}
+                            </span>
                         </div>
 
                         <div className="flex-1 w-full space-y-6">
-                            <div className="bg-zinc-50/50 p-6 rounded-2xl border border-zinc-100 space-y-6">
+                            <div className="bg-zinc-50/60 p-4 sm:p-6 rounded-2xl border border-zinc-100 space-y-6">
                                 <h3 className="text-base font-bold text-zinc-900 border-l-4 border-red-600 pl-3">
                                     Informazioni Personali
                                 </h3>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
                                     <Field
                                         label="Nome"
                                         value={formData.name}
@@ -297,12 +301,12 @@ export default function AnagraphicPage() {
 
                             {isEditing && (
                                 <div
-                                    className="bg-zinc-50/50 p-6 rounded-2xl border border-zinc-100 space-y-6 animate-in fade-in duration-300">
+                                    className="bg-zinc-50/60 p-4 sm:p-6 rounded-2xl border border-zinc-100 space-y-6 animate-in fade-in duration-300">
                                     <h3 className="text-base font-bold text-zinc-900 flex items-center gap-2 border-l-4 border-red-600 pl-3">
                                         <Lock className="w-4 h-4 text-red-600"/> Modifica Password
                                     </h3>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
                                         <div className="space-y-1.5 w-full">
                                             <Label htmlFor="currentPassword"
                                                    className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
