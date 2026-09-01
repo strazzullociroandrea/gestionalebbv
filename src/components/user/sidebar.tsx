@@ -31,6 +31,23 @@ import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "@/components/
 import {useState} from "react";
 import {api} from "@/lib/api";
 
+interface UserSession {
+    createdAt: Date;
+    email: string;
+    emailVerified: boolean;
+    id: string;
+    image?: string | null;
+    name: string;
+    updatedAt: Date;
+    surname?: string | null;
+}
+
+interface Athlete {
+    id: string;
+    name: string | null;
+    surname: string | null;
+}
+
 export const SidebarUser = ({role}: { role: string }) => {
     const {data: session, isPending} = authClient.useSession();
     const router = useRouter();
@@ -44,7 +61,7 @@ export const SidebarUser = ({role}: { role: string }) => {
 
     if (!session || isPending) return null;
 
-    const user = session.user as any;
+    const user = session.user as UserSession;
 
     const handleLogout = async () => {
         await authClient.signOut();
@@ -54,34 +71,34 @@ export const SidebarUser = ({role}: { role: string }) => {
     const isAthletesActive = pathname.startsWith("/athletes");
 
     return (
-        <Sidebar className="bg-white border-r border-zinc-200 shadow-sm" collapsible="icon">
-            <SidebarHeader className="border-b border-zinc-100 p-4">
+        <Sidebar className="bg-white border-r border-zinc-200 shadow-sm text-black" collapsible="icon">
+            <SidebarHeader className="border-b border-zinc-100 p-4 bg-white">
                 <div className="flex items-center gap-3 overflow-hidden">
                     <div
-                        className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-zinc-950 text-white shadow-md">
+                        className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-white text-red-600 shadow-md border border-zinc-200">
                         <Trophy className="size-5 text-red-600"/>
                     </div>
                     <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-                        <h1 className="text-sm font-black uppercase tracking-wider text-zinc-950 truncate">
+                        <h1 className="text-sm font-black uppercase tracking-wider text-black truncate">
                             BBV <span className="text-red-600">Gestionale</span>
                         </h1>
-                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate">Area
+                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">Area
                             Utente</p>
                     </div>
                 </div>
             </SidebarHeader>
 
-            <SidebarContent className="p-3">
+            <SidebarContent className="p-3 bg-white">
                 <SidebarGroup className="p-0 mb-4">
                     <SidebarGroupLabel
-                        className="px-2 mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 group-data-[collapsible=icon]:hidden">
+                        className="px-2 mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 group-data-[collapsible=icon]:hidden">
                         Home
                     </SidebarGroupLabel>
                     <SidebarMenu>
                         <SidebarMenuItem>
                             <SidebarMenuButton size="lg" className={cn(
                                 "w-full rounded-xl transition-all font-bold",
-                                pathname === "/" ? "bg-zinc-100 text-zinc-950 shadow-2xs" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
+                                pathname === "/" ? "bg-red-50 text-red-700 shadow-2xs border border-red-100" : "text-zinc-700 hover:bg-zinc-100 hover:text-black"
                             )}>
                                 <Link href="/" className="flex items-center gap-3 w-full">
                                     <Home className="size-4 text-red-600 shrink-0"/>
@@ -94,7 +111,7 @@ export const SidebarUser = ({role}: { role: string }) => {
 
                 <SidebarGroup className="p-0">
                     <SidebarGroupLabel
-                        className="px-2 mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 group-data-[collapsible=icon]:hidden">
+                        className="px-2 mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 group-data-[collapsible=icon]:hidden">
                         Anagrafiche
                     </SidebarGroupLabel>
                     <SidebarMenu className="space-y-1">
@@ -106,8 +123,8 @@ export const SidebarUser = ({role}: { role: string }) => {
                                         className={cn(
                                             "w-full rounded-xl px-3 transition-all font-bold flex items-center justify-between cursor-pointer",
                                             isAthletesActive
-                                                ? "bg-zinc-100 text-zinc-950 shadow-2xs"
-                                                : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950"
+                                                ? "bg-red-50 text-red-700 shadow-2xs border border-red-100"
+                                                : "text-zinc-700 hover:bg-zinc-100 hover:text-black"
                                         )}
                                     >
                                         <div className="flex items-center gap-3 min-w-0">
@@ -120,13 +137,13 @@ export const SidebarUser = ({role}: { role: string }) => {
                                 </CollapsibleTrigger>
                                 <CollapsibleContent className="group-data-[collapsible=icon]:hidden">
                                     <SidebarMenuSub className="ml-4 border-l border-zinc-200 pl-3 space-y-1 mt-1">
-                                        {athletes.map((athlete) => {
+                                        {athletes.map((athlete: Athlete) => {
                                             const isAthleteActive = pathname === `/athletes/${athlete.id}`;
                                             return (
                                                 <SidebarMenuSubItem key={athlete.id}>
                                                     <Link href={`/athletes/${athlete.id}`} className={cn(
                                                         "block w-full px-3 py-2 text-xs font-semibold rounded-lg transition-colors truncate",
-                                                        isAthleteActive ? "bg-red-50 text-red-700 font-bold" : "text-zinc-500 hover:text-zinc-900"
+                                                        isAthleteActive ? "bg-red-50 text-red-700 font-bold" : "text-zinc-600 hover:text-black hover:bg-zinc-50"
                                                     )}>
                                                         {athlete.name} {athlete.surname}
                                                     </Link>
@@ -149,7 +166,7 @@ export const SidebarUser = ({role}: { role: string }) => {
                         <SidebarMenuItem>
                             <SidebarMenuButton size="lg" className={cn(
                                 "w-full rounded-xl transition-all font-bold",
-                                pathname === "/anagraphic" ? "bg-zinc-100 text-zinc-950 shadow-2xs" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
+                                pathname === "/anagraphic" ? "bg-red-50 text-red-700 shadow-2xs border border-red-100" : "text-zinc-700 hover:bg-zinc-100 hover:text-black"
                             )}>
                                 <Link href="/anagraphic" className="flex items-center gap-3 w-full">
                                     <User className="size-4 text-red-600 shrink-0"/>
@@ -162,20 +179,22 @@ export const SidebarUser = ({role}: { role: string }) => {
                 </SidebarGroup>
             </SidebarContent>
 
-            <SidebarFooter className="p-3 border-t border-zinc-100">
+            <SidebarFooter className="p-3 border-t border-zinc-100 bg-white">
                 <div
-                    className="flex items-center gap-3 p-2.5 rounded-2xl bg-zinc-50 border border-zinc-200/60 overflow-hidden group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:justify-center">
+                    className="flex items-center gap-3 p-2.5 rounded-2xl bg-zinc-50 border border-zinc-200 overflow-hidden group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:justify-center">
                     <div
                         className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-white border border-zinc-200 shadow-2xs">
                         <ShieldCheck className="size-4 text-red-600"/>
                     </div>
                     <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-                        <p className="truncate text-xs font-black text-zinc-950">{user.name.toUpperCase() + " " + user.surname.toUpperCase()}</p>
+                        <p className="truncate text-xs font-black text-black">
+                            {user.name.toUpperCase()} {user.surname ? user.surname.toUpperCase() : ""}
+                        </p>
                         <p className="text-[9px] font-black uppercase tracking-widest text-red-600 truncate">{role}</p>
                     </div>
                     <button
                         onClick={handleLogout}
-                        className="cursor-pointer p-2 text-zinc-400 hover:text-red-600 hover:bg-white rounded-lg transition-colors shrink-0 group-data-[collapsible=icon]:hidden"
+                        className="cursor-pointer p-2 text-zinc-500 hover:text-red-600 hover:bg-white rounded-lg transition-colors shrink-0 group-data-[collapsible=icon]:hidden"
                         title="Logout"
                     >
                         <LogOut className="size-4"/>
