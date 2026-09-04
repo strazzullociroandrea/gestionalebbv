@@ -1,14 +1,12 @@
 "use client";
 
-import {useState} from "react";
-import {useParams} from "next/navigation";
-import {authClient} from "@/lib/auth-client";
-import {User, ClipboardList, Users} from "lucide-react";
-import {Card} from "@/components/ui/card";
-import {Button} from "@/components/ui/button";
-import {AthleteInfo} from "@/components/user/athlete-info";
-import {SubscriptionTeam} from "@/components/user/subscription";
-import {SubscribedTeam} from "@/components/user/subscribed";
+import { useParams } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
+import { User, ClipboardList, Users } from "lucide-react";
+import { AthleteInfo } from "@/components/user/athlete-info";
+import { SubscriptionTeam } from "@/components/user/subscription";
+import { SubscribedTeam } from "@/components/user/subscribed";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AthletePage() {
     const params = useParams();
@@ -21,86 +19,63 @@ export default function AthletePage() {
         ""
     ) as string;
 
-    const {data: session, isPending: isSessionLoading} = authClient.useSession();
-    const [activeTab, setActiveTab] = useState<"anagrafica" | "iscrizione" | "squadre">("anagrafica");
+    const { data: session } = authClient.useSession();
 
     const userId = session?.user?.id as string;
     const userEmail = session?.user?.email;
 
-    if (isSessionLoading) {
-        return (
-            <div className="w-full max-w-5xl mx-auto p-6 text-center text-zinc-400">
-                <p className="animate-pulse font-semibold">Caricamento in corso...</p>
-            </div>
-        );
-    }
+    const tabs = [
+        { id: "anagrafica", label: "Anagrafica", icon: User },
+        { id: "iscrizione", label: "Iscrizione", icon: ClipboardList },
+        { id: "squadre", label: "Squadre", icon: Users },
+    ] as const;
 
     return (
-        <div className="min-h-screen flex flex-col items-center p-4 md:p-6 space-y-6 bg-background text-foreground">
-            <div
-                className="flex flex-wrap items-center gap-2 p-1.5 border border-border rounded-3xl shadow-lg bg-card">
-                <Button
-                    variant={activeTab === "anagrafica" ? "default" : "ghost"}
-                    onClick={() => setActiveTab("anagrafica")}
-                    className={`cursor-pointer flex-1 min-w-35 font-bold uppercase tracking-wider text-xs sm:text-sm transition-all ${
-                        activeTab === "anagrafica"
-                            ? "bg-red-500 hover:bg-red-600 text-white shadow-md shadow-red-500/20"
-                            : "text-muted-foreground"
-                    }`}
-                >
-                    <User className="mr-2 h-4 w-4"/>
-                    Anagrafica
-                </Button>
+        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-10 pb-32 sm:pb-40 space-y-6 sm:space-y-8 text-zinc-900 min-h-screen animate-in fade-in duration-500 relative bg-zinc-50/50">
+            <Tabs defaultValue="anagrafica" className="w-full space-y-6 sm:space-y-8">
 
-                <Button
-                    variant={activeTab === "iscrizione" ? "default" : "ghost"}
-                    onClick={() => setActiveTab("iscrizione")}
-                    className={`cursor-pointer flex-1 min-w-35 font-bold uppercase tracking-wider text-xs sm:text-sm transition-all ${
-                        activeTab === "iscrizione"
-                            ? "bg-red-500 hover:bg-red-600 text-white shadow-md shadow-red-500/20"
-                            : "text-muted-foreground"
-                    }`}
-                >
-                    <ClipboardList className="mr-2 h-4 w-4"/>
-                    Iscrizione
-                </Button>
+                <TabsContent value="anagrafica" className="w-full mt-0 focus-visible:outline-none">
+                    <AthleteInfo
+                        idUser={userId}
+                        idAthlete={idAthlete}
+                        emailUser={userEmail}
+                    />
+                </TabsContent>
 
-                <Button
-                    variant={activeTab === "squadre" ? "default" : "ghost"}
-                    onClick={() => setActiveTab("squadre")}
-                    className={`cursor-pointer flex-1 min-w-35 font-bold uppercase tracking-wider text-xs sm:text-sm transition-all ${
-                        activeTab === "squadre"
-                            ? "bg-red-500 hover:bg-red-600 text-white shadow-md shadow-red-500/20"
-                            : "text-muted-foreground"
-                    }`}
-                >
-                    <Users className="mr-2 h-4 w-4"/>
-                    Squadre
-                </Button>
-            </div>
+                <TabsContent value="iscrizione" className="w-full mt-0 focus-visible:outline-none">
+                    <SubscriptionTeam
+                        idUser={userId}
+                        idAthlete={idAthlete}
+                    />
+                </TabsContent>
 
-            {activeTab === "anagrafica" && (
-                <AthleteInfo
-                    idUser={userId}
-                    idAthlete={idAthlete}
-                    emailUser={userEmail}
-                />
-            )}
+                <TabsContent value="squadre" className="w-full mt-0 focus-visible:outline-none">
+                    <SubscribedTeam
+                        idAthlete={idAthlete}
+                        idUser={userId}
+                    />
+                </TabsContent>
 
-            {activeTab === "iscrizione" && (
-                <SubscriptionTeam
-                    idUser={userId}
-                    idAthlete={idAthlete}
-                />
-            )}
-
-            {activeTab === "squadre" && (
-                <SubscribedTeam
-                    idAthlete={idAthlete}
-                    idUser={userId}
-
-                />
-            )}
+                <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
+                    <div className="pointer-events-auto flex items-center p-1.5 bg-white/80 backdrop-blur-xl border border-zinc-200/80 rounded-full shadow-xl shadow-zinc-200/50 ring-1 ring-zinc-900/5 transition-all">
+                        <TabsList className="flex items-center gap-1.5 bg-transparent h-auto p-0 border-0">
+                            {tabs.map((tab) => {
+                                const Icon = tab.icon;
+                                return (
+                                    <TabsTrigger
+                                        key={tab.id}
+                                        value={tab.id}
+                                        className="cursor-pointer flex items-center gap-2 py-2.5 px-4 sm:px-5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-red-600/20 text-zinc-500 hover:text-zinc-900 bg-transparent border-0 hover:bg-zinc-100"
+                                    >
+                                        <Icon className="h-4 w-4 shrink-0 transition-transform duration-300" />
+                                        <span className="leading-none">{tab.label}</span>
+                                    </TabsTrigger>
+                                );
+                            })}
+                        </TabsList>
+                    </div>
+                </div>
+            </Tabs>
         </div>
     );
 }

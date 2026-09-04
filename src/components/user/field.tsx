@@ -16,7 +16,7 @@ export const Field = ({
                           maxLength,
                           required = false,
                           isEditing = true,
-                          disabled = false, // <-- Aggiunto
+                          disabled = false,
                           className = ""
                       }: {
     icon?: React.ElementType;
@@ -31,7 +31,7 @@ export const Field = ({
     maxLength?: number;
     required?: boolean;
     isEditing?: boolean;
-    disabled?: boolean; // <-- Aggiunto al tipo
+    disabled?: boolean;
     className?: string;
 }) => (
     <div className={`space-y-1.5 w-full ${className}`}>
@@ -40,7 +40,7 @@ export const Field = ({
             className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5 pl-1 cursor-pointer"
         >
             {Icon && (
-                <Icon className={`h-3.5 w-3.5 shrink-0 ${isEditing && !disabled ? 'text-red-600' : 'text-zinc-400'}`}/>
+                <Icon className={`h-3.5 w-3.5 shrink-0 text-red-600`}/>
             )}
             <span>{label}</span>
             {required && <span className="text-red-600 font-bold">*</span>}
@@ -56,7 +56,7 @@ export const Field = ({
                     onChange={onChange}
                     placeholder={placeholder}
                     maxLength={maxLength}
-                    disabled={disabled} // <-- Passato all'input nativo
+                    disabled={disabled}
                     className={`bg-white border-zinc-200 focus:border-red-500 focus:ring-0 font-medium h-11 rounded-xl text-sm text-zinc-900 w-full uppercase ${
                         error ? "border-red-500 focus:border-red-500" : ""
                     } ${disabled ? "bg-zinc-100 text-zinc-500 cursor-not-allowed" : ""}`}

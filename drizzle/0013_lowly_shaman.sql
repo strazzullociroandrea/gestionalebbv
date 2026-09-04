@@ -1,0 +1,1 @@
+ALTER TABLE `Account` ADD `issuer` text;
