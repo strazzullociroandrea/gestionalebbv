@@ -6,7 +6,7 @@ export async function sendEmail(
 ) {
     try {
         const payload: Record<string, any> = {
-            from: 'Gestionale BBV <noreply@cirostrazzullo.it>',
+            from: 'BULLSDESK <noreply@blackbullsvolley.it>',
             to: [to],
             subject: subject,
         };
