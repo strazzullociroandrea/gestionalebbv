@@ -18,7 +18,9 @@ import {
     Plus,
     Trash2,
     ShieldAlert,
-    Pencil
+    Pencil,
+    Users,
+    CreditCard
 } from "lucide-react";
 import {
     Dialog,
@@ -191,9 +193,12 @@ export default function TeamDetailPage() {
 
     if (isInfoTeamLoading || updatePasswordMutation.isPending) {
         return (
-            <div className="w-full max-w-6xl mx-auto p-10 flex flex-col items-center justify-center min-h-[60vh] gap-4">
-                <Loader2 className="w-10 h-10 text-red-600 animate-spin"/>
-                <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Caricamento informazioni...</p>
+            <div className="w-full max-w-6xl mx-auto px-2 sm:px-4 py-8">
+                <Card
+                    className="border border-zinc-200 bg-white p-12 text-center text-zinc-500 shadow-sm rounded-2xl sm:rounded-3xl w-full">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-red-600"/>
+                    <p className="font-extrabold tracking-widest uppercase text-xs">Caricamento in corso...</p>
+                </Card>
             </div>
         );
     }
@@ -204,8 +209,7 @@ export default function TeamDetailPage() {
     const athletes = infoTeam?.athletes || [];
 
     return (
-        <div className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-10 space-y-8 animate-in fade-in duration-500">
-            {/* Dialog Gestione Campionato */}
+        <div className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-10 space-y-10 animate-in fade-in duration-500">
             <Dialog open={openChampionshipDialog} onOpenChange={setOpenChampionshipDialog}>
                 <DialogContent
                     className="sm:max-w-md w-[95%] rounded-3xl border border-zinc-200 bg-white p-6 shadow-xl">
@@ -268,7 +272,7 @@ export default function TeamDetailPage() {
                             />
                             <Label htmlFor="isPaid"
                                    className="text-xs font-bold text-zinc-700 uppercase tracking-wider cursor-pointer">
-                                Quota d'iscrizione pagata
+                                Quota pagata
                             </Label>
                         </div>
 
@@ -339,16 +343,6 @@ export default function TeamDetailPage() {
                 </Button>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div className="flex flex-col gap-1">
-                    <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 tracking-tight">Gestione
-                        Squadra</h1>
-                    <p className="text-zinc-500 font-medium text-sm sm:text-base">
-                        Monitora e gestisci le informazioni, i campionati e gli atleti della squadra.
-                    </p>
-                </div>
-            </div>
-
             <Card className="rounded-3xl border border-zinc-200 bg-white p-6 sm:p-8 shadow-sm relative overflow-hidden">
                 <div
                     className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-red-600 via-red-500 to-red-600"/>
@@ -371,8 +365,10 @@ export default function TeamDetailPage() {
                             variant="outline"
                             onClick={() => setOpenDeleteTeamDialog(true)}
                             className="cursor-pointer border-red-200 bg-red-50 text-red-700 hover:bg-red-100 font-bold text-xs uppercase tracking-wider h-10 px-4 rounded-xl flex items-center gap-2"
+                            title="Elimina Squadra"
                         >
-                            <Trash2 className="w-4 h-4"/> Elimina Squadra
+                            <Trash2 className="w-4 h-4"/>
+                            <span className="hidden sm:inline">Elimina</span>
                         </Button>
                     </div>
 
@@ -436,11 +432,21 @@ export default function TeamDetailPage() {
                 </div>
             </Card>
 
-            <div className="space-y-6">
+            <div className="space-y-4 pt-2">
                 <div
-                    className="flex items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm">
-                    <h2 className="text-sm font-extrabold text-zinc-950 uppercase tracking-wider">Campionati
-                        Iscritti</h2>
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-5 rounded-3xl border border-zinc-200 shadow-sm">
+                    <div className="flex items-center gap-3">
+                        <div
+                            className="size-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-red-600 shrink-0">
+                            <Trophy className="w-5 h-5"/>
+                        </div>
+                        <div>
+                            <h2 className="text-base font-extrabold text-zinc-950 uppercase tracking-wider">Campionati
+                                Iscritti</h2>
+                            <p className="text-xs text-zinc-500 font-medium">Tornei e competizioni a cui partecipa la
+                                squadra</p>
+                        </div>
+                    </div>
                     <Button
                         onClick={() => {
                             setDialogError("");
@@ -450,57 +456,67 @@ export default function TeamDetailPage() {
                             setChampionshipId(null);
                             setOpenChampionshipDialog(true);
                         }}
-                        className="cursor-pointer bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-xl shadow-sm transition-all text-xs uppercase tracking-wider flex items-center gap-2 h-9"
+                        className="cursor-pointer bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-xl shadow-sm transition-all text-xs uppercase tracking-wider flex items-center gap-2 h-10 w-full sm:w-auto justify-center"
                     >
-                        <Plus className="w-3.5 h-3.5"/> Aggiungi Campionato
+                        <Plus className="w-4 h-4"/> Aggiungi Campionato
                     </Button>
                 </div>
 
                 {championships.length === 0 ? (
                     <div
-                        className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/50 p-8 text-center flex flex-col items-center justify-center">
-                        <p className="text-sm text-zinc-500 font-medium">Nessun campionato associato a questa
-                            squadra.</p>
+                        className="rounded-3xl border border-dashed border-zinc-200 bg-white p-10 text-center flex flex-col items-center justify-center">
+                        <div
+                            className="size-12 rounded-2xl bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-400 mb-3">
+                            <Trophy className="w-6 h-6 text-zinc-300"/>
+                        </div>
+                        <h3 className="text-sm font-bold text-zinc-900">Nessun campionato iscritto</h3>
+                        <p className="text-xs text-zinc-500 max-w-xs mt-1">
+                            Aggiungi un campionato per iniziare a monitorare le quote e le iscrizioni della squadra.
+                        </p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {championships.map((champ) => (
                             <Card key={champ.Championship.id}
-                                  className="rounded-2xl border border-zinc-200 shadow-sm bg-white p-5 flex flex-col justify-between space-y-4">
-                                <div className="space-y-2">
+                                  className="rounded-3xl border border-zinc-200 shadow-sm bg-white p-5 flex flex-col justify-between space-y-4 transition-all hover:shadow-md">
+                                <div className="space-y-3">
                                     <div className="flex items-start justify-between gap-3">
-                                        <div className="min-w-0 flex-1">
-                                            <h3 className="font-bold text-zinc-950 truncate text-base">
+                                        <div className="min-w-0 flex-1 space-y-1">
+                                            <span
+                                                className="inline-block px-2.5 py-0.5 rounded-md bg-zinc-100 text-[10px] font-black uppercase tracking-widest text-zinc-600">
+                                                {champ.Championship.sportsCommittee}
+                                            </span>
+                                            <h3 className="font-extrabold text-zinc-950 text-base leading-snug">
                                                 {champ.Championship.name}
                                             </h3>
-                                            <p className="text-[10px] font-extrabold uppercase tracking-widest text-red-600 mt-0.5 truncate">
-                                                {champ.Championship.sportsCommittee}
-                                            </p>
                                         </div>
-                                        <div className="flex items-center gap-1.5 shrink-0">
+                                        <div className="flex items-center gap-1 shrink-0">
                                             <Button
                                                 variant="outline"
                                                 size="icon"
                                                 onClick={() => handleOpenEditChampionship(champ.Championship)}
-                                                className="h-9 w-9 rounded-xl border-zinc-200 text-zinc-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+                                                className="h-8 w-8 rounded-xl border-zinc-200 text-zinc-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
                                                 title="Modifica campionato"
                                             >
-                                                <Pencil className="w-4 h-4"/>
+                                                <Pencil className="w-3.5 h-3.5"/>
                                             </Button>
                                             <Button
                                                 variant="outline"
                                                 size="icon"
                                                 onClick={() => removeChampionshipMutation.mutate({id: champ.Championship.id})}
-                                                className="h-9 w-9 rounded-xl border-zinc-200 text-zinc-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+                                                className="h-8 w-8 rounded-xl border-zinc-200 text-zinc-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
                                                 title="Rimuovi campionato"
                                             >
-                                                <Trash2 className="w-4 h-4"/>
+                                                <Trash2 className="w-3.5 h-3.5"/>
                                             </Button>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="pt-2 border-t border-zinc-100 flex items-center justify-between">
-                                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Stato Pagamento</span>
+                                <div className="pt-3 border-t border-zinc-100 flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5 text-zinc-400">
+                                        <CreditCard className="w-3.5 h-3.5"/>
+                                        <span className="text-[10px] font-bold uppercase tracking-widest">Quota</span>
+                                    </div>
                                     <span className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg ${
                                         champ.Championship.paid
                                             ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
@@ -515,26 +531,38 @@ export default function TeamDetailPage() {
                 )}
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4 pt-2">
                 <div
-                    className="flex items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm">
-                    <h2 className="text-sm font-extrabold text-zinc-950 uppercase tracking-wider">Elenco Atleti</h2>
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-5 rounded-3xl border border-zinc-200 shadow-sm">
+                    <div className="flex items-center gap-3">
+                        <div
+                            className="size-10 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-700 shrink-0">
+                            <Users className="w-5 h-5"/>
+                        </div>
+                        <div>
+                            <h2 className="text-base font-extrabold text-zinc-950 uppercase tracking-wider">Rosa
+                                Atleti</h2>
+                            <p className="text-xs text-zinc-500 font-medium">Giocatori registrati e collegati a questa
+                                squadra</p>
+                        </div>
+                    </div>
                     <span
-                        className="text-xs font-bold text-zinc-400 uppercase tracking-wider bg-zinc-100 px-3 py-1.5 rounded-xl">
-                        {athletes.length} atleti
+                        className="text-xs font-bold text-zinc-600 uppercase tracking-wider bg-zinc-100 px-3.5 py-1.5 rounded-xl border border-zinc-200 w-full sm:w-auto text-center">
+                        Totale: {athletes.length}
                     </span>
                 </div>
 
                 {athletes.length === 0 ? (
                     <div
-                        className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/50 p-12 text-center flex flex-col items-center justify-center">
+                        className="rounded-3xl border border-dashed border-zinc-200 bg-white p-12 text-center flex flex-col items-center justify-center">
                         <div
-                            className="w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400 mb-3 shadow-2xs">
+                            className="w-12 h-12 rounded-2xl bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-400 mb-3 shadow-2xs">
                             <UserX className="w-5 h-5 text-red-600"/>
                         </div>
                         <h3 className="text-base font-bold text-zinc-900">Nessun atleta trovato</h3>
                         <p className="text-sm text-zinc-500 max-w-sm mt-1">
-                            Invia alla squadra la password di iscrizione per permettere agli atleti di registrarsi.
+                            Condividi la password di iscrizione con la squadra per permettere agli atleti di
+                            registrarsi.
                         </p>
                     </div>
                 ) : (
@@ -543,24 +571,28 @@ export default function TeamDetailPage() {
                             <Link key={athlete.Athlete.id} href={`/administrative/athletes/${athlete.Athlete.id}`}
                                   className="group block">
                                 <Card
-                                    className="rounded-2xl border border-zinc-200 shadow-sm bg-white p-5 transition-all duration-300 group-hover:border-red-600/50 group-hover:shadow-md">
+                                    className="rounded-3xl border border-zinc-200 shadow-sm bg-white p-5 transition-all duration-300 group-hover:border-red-600/50 group-hover:shadow-md">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3.5 min-w-0">
                                             <div
-                                                className="size-12 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-red-600 shrink-0 font-black text-sm">
+                                                className="size-12 rounded-2xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-red-600 shrink-0 font-black text-sm">
                                                 {athlete.Athlete.name?.[0]?.toUpperCase() || ""}{athlete.Athlete.surname?.[0]?.toUpperCase() || ""}
                                             </div>
                                             <div className="min-w-0">
                                                 <p className="font-bold text-zinc-950 truncate text-base group-hover:text-red-600 transition-colors">
                                                     {athlete.Athlete.name} {athlete.Athlete.surname}
                                                 </p>
-                                                <p className="text-xs text-zinc-400 font-semibold uppercase tracking-wider mt-0.5">
-                                                    {athlete.Athlete.status === "active" ? "Attivo" : "Non attivo"}
-                                                </p>
+                                                <div className="flex items-center gap-1.5 mt-0.5">
+                                                    <span
+                                                        className={`inline-block size-2 rounded-full ${athlete.Athlete.status === "active" ? "bg-emerald-500" : "bg-zinc-300"}`}/>
+                                                    <p className="text-xs text-zinc-400 font-semibold uppercase tracking-wider">
+                                                        {athlete.Athlete.status === "active" ? "Attivo" : "Non attivo"}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
                                         <div
-                                            className="size-8 rounded-full bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-400 group-hover:bg-red-600 group-hover:text-white group-hover:border-red-600 transition-all shrink-0">
+                                            className="size-9 rounded-2xl bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-400 group-hover:bg-red-600 group-hover:text-white group-hover:border-red-600 transition-all shrink-0">
                                             <ArrowRight className="w-4 h-4"/>
                                         </div>
                                     </div>
