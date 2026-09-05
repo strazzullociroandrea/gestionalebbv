@@ -94,10 +94,16 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
                     : cfInstance.toString().toUpperCase();
 
                 if (calcolato.substring(0, 15) !== cleanCf.substring(0, 15)) {
-                    return {status: "error", message: "Il Codice Fiscale non corrisponde a Nome, Cognome, Sesso, Data o Luogo di Nascita inseriti"};
+                    return {
+                        status: "error",
+                        message: "Il Codice Fiscale non corrisponde a Nome, Cognome, Sesso, Data o Luogo di Nascita inseriti"
+                    };
                 }
             } catch (e) {
-                return {status: "warning", message: "Impossibile verificare la corrispondenza con il comune (comune non riconosciuto)"};
+                return {
+                    status: "warning",
+                    message: "Impossibile verificare la corrispondenza con il comune (comune non riconosciuto)"
+                };
             }
         } else {
             return {status: "warning", message: "Compila tutti i dati anagrafici per la verifica incrociata"};
@@ -371,17 +377,6 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
                                                required/>
                                     </div>
 
-                                    <div className="space-y-1.5 w-full min-w-0">
-                                        <Label
-                                            className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1.5 pl-0.5">
-                                            <Mail className="h-3.5 w-3.5 text-red-600 shrink-0"/>
-                                            <span>Email Genitore / Referente</span>
-                                        </Label>
-                                        <div
-                                            className="bg-white border border-zinc-200 text-zinc-700 px-4 py-3 rounded-xl min-h-[44px] flex items-center font-medium text-sm break-all w-full uppercase">
-                                            {emailUser?.toUpperCase() || "N/D"}
-                                        </div>
-                                    </div>
 
                                     <div className="w-full min-w-0">
                                         <Field icon={Calendar} label="Scadenza Certificato Medico"
