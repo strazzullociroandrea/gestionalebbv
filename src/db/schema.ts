@@ -92,8 +92,6 @@ export const Notification = sqliteTable('Notification', {
     dateCreation: text().default(sql`(CURRENT_TIMESTAMP)`),
     dateExpiration: text().notNull(),
     text: text().notNull(),
-    read: integer({mode: 'boolean'}).notNull().default(true),
-    idAdmin: text().references(() => User.id, {onDelete: "cascade"}).notNull(),
     idAthlete: text().references(() => Athlete.id, {onDelete: "cascade"}).notNull(),
 })
 

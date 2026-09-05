@@ -61,15 +61,6 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
         expiredCI: ""
     });
 
-    const arePersonalDetailsComplete = Boolean(
-        formData.name.trim() &&
-        formData.surname.trim() &&
-        formData.gender &&
-        formData.dateOfBirth.trim() &&
-        formData.birthPlace.trim() &&
-        formData.countryBirthPlace.trim()
-    );
-
     const getCfValidationState = () => {
         const cleanCf = formData.nin.trim().toUpperCase();
         if (!cleanCf) return {status: "empty", message: ""};
@@ -84,7 +75,7 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
             return {status: "error", message: "Errore nella verifica formale"};
         }
 
-        if (arePersonalDetailsComplete) {
+        if (formData.name.trim() && formData.surname.trim() && formData.gender && formData.dateOfBirth.trim() && formData.birthPlace.trim() && formData.countryBirthPlace.trim()) {
             try {
                 const [y, m, d] = formData.dateOfBirth.split("-");
                 const cfInstance = new CodiceFiscale({
@@ -98,20 +89,21 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
                     birthplaceProvincia: formData.countryBirthPlace.trim().toUpperCase()
                 });
 
-                const calcolato = (cfInstance as any).code
+                const calcolato: string = (cfInstance as any).code
                     ? (cfInstance as any).code.toUpperCase()
                     : cfInstance.toString().toUpperCase();
 
                 if (calcolato.substring(0, 15) !== cleanCf.substring(0, 15)) {
-                    return {status: "error", message: "Non corrisponde ai dati anagrafici (Nome, Cognome, Data/Luogo)"};
+                    return {status: "error", message: "Il Codice Fiscale non corrisponde a Nome, Cognome, Sesso, Data o Luogo di Nascita inseriti"};
                 }
-            } catch {
+            } catch (e) {
+                return {status: "warning", message: "Impossibile verificare la corrispondenza con il comune (comune non riconosciuto)"};
             }
         } else {
-            return {status: "warning", message: "Completa i dati anagrafici per la verifica incrociata"};
+            return {status: "warning", message: "Compila tutti i dati anagrafici per la verifica incrociata"};
         }
 
-        return {status: "valid", message: "Codice Fiscale valido e verificato"};
+        return {status: "valid", message: "Codice Fiscale valido e verificato con i dati anagrafici"};
     };
 
     const cfState = getCfValidationState();
@@ -144,9 +136,14 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
         },
     });
 
-    const handleChange = (name: string, value: string | null) => {
-        const updatedValue = name === "nin" || name === "countryBirthPlace" || name === "ci" ? value?.toUpperCase() : value;
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement> | { target: { name: string; value: string } }) => {
+        const {name, value} = e.target;
+        const updatedValue = name === "nin" || name === "countryBirthPlace" || name === "ci" ? value.toUpperCase() : value;
         setFormData(prev => ({...prev, [name]: updatedValue}));
+    };
+
+    const handleSelectChange = (name: string, value: string | null) => {
+        setFormData(prev => ({...prev, [name]: value || ""}));
     };
 
     const handleSave = () => {
@@ -166,28 +163,32 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
     };
 
     return (
-        <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-6">
+        <div className="w-full max-w-6xl mx-auto space-y-6 text-black">
             <Card className="border border-zinc-200/80 bg-white shadow-2xl rounded-3xl w-full overflow-hidden">
-                <div className="h-3 bg-gradient-to-r from-red-700 via-red-600 to-orange-500"/>
+                <div className="h-1.5 bg-red-600 w-full"/>
 
                 <CardContent className="p-5 sm:p-8 lg:p-10">
-                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8 pb-6 border-b border-zinc-100">
-                        <div className="flex items-center gap-4 text-left">
+                    <div
+                        className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8 pb-6 border-b border-zinc-100">
+                        <div className="flex items-center gap-4 text-left w-full min-w-0">
                             <div className="bg-red-50 p-4 rounded-2xl border border-red-100 shrink-0 shadow-inner">
                                 <UserCircle className="w-12 h-12 sm:w-16 sm:h-16 text-red-600"/>
                             </div>
                             <div className="w-full min-w-0">
-                                <span className="text-xs font-bold text-red-600 uppercase tracking-widest">Registrazione</span>
+                                <span
+                                    className="text-xs font-bold text-red-600 uppercase tracking-widest block">Registrazione</span>
                                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-zinc-950 tracking-tight">
                                     Nuovo atleta
                                 </h2>
                             </div>
                         </div>
 
-                        <div className="hidden lg:flex items-center gap-3">
+                        <div className="hidden lg:flex items-center gap-3 shrink-0">
                             {successMessage && (
-                                <div className="flex items-center text-sm font-medium text-emerald-700 bg-emerald-50 px-4 py-2.5 rounded-xl border border-emerald-200">
-                                    <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-500 shrink-0"/> Salvato con successo
+                                <div
+                                    className="flex items-center text-xs font-medium text-emerald-700 bg-emerald-50 px-3.5 py-2.5 rounded-xl border border-emerald-200 justify-center">
+                                    <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-500 shrink-0"/> Salvato con
+                                    successo
                                 </div>
                             )}
                             <Button
@@ -195,18 +196,22 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
                                 disabled={!isFormValid || createAthleteMutation.isPending}
                                 className="bg-red-600 hover:bg-red-700 text-white font-bold h-12 px-8 rounded-xl shadow-md disabled:opacity-60 text-xs uppercase tracking-wider cursor-pointer transition-all"
                             >
-                                {createAthleteMutation.isPending ?
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/> :
-                                    <UserPlus className="mr-2 h-4 w-4"/>}
+                                {createAthleteMutation.isPending ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                                ) : (
+                                    <UserPlus className="mr-2 h-4 w-4"/>
+                                )}
                                 Registra Atleta
                             </Button>
                         </div>
                     </div>
 
                     <Dialog open={open} onOpenChange={setOpen}>
-                        <DialogContent className="rounded-3xl border border-zinc-200 bg-white p-6 sm:p-8 shadow-2xl max-w-[90vw] sm:max-w-md animate-in fade-in zoom-in-95 duration-300">
+                        <DialogContent
+                            className="rounded-3xl border border-zinc-200 bg-white p-6 sm:p-8 shadow-2xl max-w-[90vw] sm:max-w-md animate-in fade-in zoom-in-95 duration-300">
                             <DialogHeader className="space-y-4 text-center">
-                                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm">
+                                <div
+                                    className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm">
                                     <CheckCircle2 className="h-7 w-7 shrink-0"/>
                                 </div>
                                 <div className="space-y-1.5">
@@ -214,17 +219,21 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
                                         Atleta registrato con successo!
                                     </DialogTitle>
                                     <DialogDescription className="text-xs font-medium text-zinc-500 leading-relaxed">
-                                        L'operazione è andata a buon fine. Per completare la pratica, segui le indicazioni sottostanti.
+                                        L&apos;operazione è andata a buon fine. Per completare la pratica, segui le
+                                        indicazioni sottostanti.
                                     </DialogDescription>
                                 </div>
                             </DialogHeader>
 
-                            <div className="my-2 p-4 rounded-2xl bg-zinc-50 border border-zinc-200/80 text-center space-y-2">
+                            <div
+                                className="my-2 p-4 rounded-2xl bg-zinc-50 border border-zinc-200/80 text-center space-y-2">
                                 <p className="text-[11px] font-extrabold uppercase tracking-widest text-zinc-700">
                                     Azione richiesta
                                 </p>
                                 <p className="text-xs text-zinc-600 font-medium leading-relaxed break-words">
-                                    Si prega di inviare a <span className="font-bold text-zinc-900 underline">cblackbullsvolley@gmail.com</span> la copia fronte/retro del documento d'identità dell'atleta.
+                                    Si prega di inviare a <span
+                                    className="font-bold text-zinc-900 underline">cblackbullsvolley@gmail.com</span> la
+                                    copia fronte/retro del documento d&apos;identità dell&apos;atleta.
                                 </p>
                             </div>
 
@@ -240,7 +249,8 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
                     </Dialog>
 
                     {generalError && (
-                        <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 text-xs sm:text-sm font-medium flex items-center gap-2">
+                        <div
+                            className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 text-xs sm:text-sm font-medium flex items-center gap-2">
                             <ShieldAlert className="h-4 w-4 shrink-0 text-red-600"/>
                             <span className="break-words">{generalError}</span>
                         </div>
@@ -254,64 +264,71 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
                                 <div className="w-full min-w-0">
-                                    <Field icon={User} label="Nome *" id="name" value={formData.name}
-                                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("name", e.target.value)}/>
+                                    <Field icon={User} label="Nome" id="name" name="name" value={formData.name}
+                                           onChange={handleChange} isEditing={true} required/>
                                 </div>
                                 <div className="w-full min-w-0">
-                                    <Field icon={Contact} label="Cognome *" id="surname" value={formData.surname}
-                                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("surname", e.target.value)}/>
+                                    <Field icon={Contact} label="Cognome" id="surname" name="surname"
+                                           value={formData.surname}
+                                           onChange={handleChange} isEditing={true} required/>
                                 </div>
 
                                 <div className="space-y-1.5 w-full min-w-0">
-                                    <Label htmlFor="gender" className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1.5 pl-0.5 cursor-pointer">
-                                        <UserCircle className="h-3.5 w-3.5 shrink-0 text-zinc-400"/>
-                                        Sesso *
+                                    <Label htmlFor="gender"
+                                           className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1.5 pl-0.5 cursor-pointer">
+                                        <UserCircle className="h-3.5 w-3.5 shrink-0 text-red-600"/>
+                                        Sesso <span className="text-red-600">*</span>
                                     </Label>
-                                    <Select value={formData.gender} onValueChange={(v) => handleChange("gender", v)}>
-                                        <SelectTrigger className="bg-white border-zinc-200 focus:border-red-500 focus:ring-0 font-medium h-11 rounded-xl text-sm text-zinc-900 w-full truncate">
-                                            <SelectValue placeholder="Seleziona sesso..."/>
+                                    <Select value={formData.gender}
+                                            onValueChange={(v) => handleSelectChange("gender", v)}>
+                                        <SelectTrigger
+                                            className="bg-white border border-zinc-200 text-zinc-900 shadow-2xs hover:bg-zinc-50/50 transition-all rounded-xl px-3.5 h-[52px] text-xs font-semibold w-full">
+                                            <SelectValue placeholder="Seleziona"/>
                                         </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="M">Maschio</SelectItem>
-                                            <SelectItem value="F">Femmina</SelectItem>
+                                        <SelectContent className="bg-white border border-zinc-200 rounded-xl shadow-lg">
+                                            <SelectItem value="M"
+                                                        className="text-xs font-semibold py-2.5 cursor-pointer focus:bg-red-50 focus:text-red-700">M</SelectItem>
+                                            <SelectItem value="F"
+                                                        className="text-xs font-semibold py-2.5 cursor-pointer focus:bg-red-50 focus:text-red-700">F</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
 
                                 <div className="w-full min-w-0">
-                                    <Field icon={Calendar} label="Data di Nascita *" id="dateOfBirth" value={formData.dateOfBirth}
-                                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("dateOfBirth", e.target.value)}
-                                           type="date"/>
+                                    <Field icon={Calendar} label="Data di Nascita" id="dateOfBirth" name="dateOfBirth"
+                                           value={formData.dateOfBirth} onChange={handleChange} isEditing={true}
+                                           type="date" required/>
                                 </div>
-
                                 <div className="w-full min-w-0">
-                                    <Field icon={FileText} label="Carta d'identità *" id="ci" value={formData.ci}
-                                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("ci", e.target.value)}/>
+                                    <Field icon={FileText} label="Numero carta d'identità" id="ci" name="ci"
+                                           value={formData.ci} onChange={handleChange} isEditing={true} required/>
                                 </div>
-
                                 <div className="w-full min-w-0">
-                                    <Field icon={Calendar} label="Scadenza carta d'identità *" id="expiredCI"
-                                           value={formData.expiredCI}
-                                           type="date"
-                                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("expiredCI", e.target.value)}/>
+                                    <Field icon={Calendar} label="Scadenza carta d'identità" id="expiredCI"
+                                           name="expiredCI"
+                                           value={formData.expiredCI} onChange={handleChange} isEditing={true}
+                                           type="date" required/>
                                 </div>
 
                                 <div className="sm:col-span-2 lg:col-span-3 space-y-1.5 w-full min-w-0">
-                                    <Field icon={CreditCard} label="Codice Fiscale *" id="nin"
-                                           value={formData.nin}
-                                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("nin", e.target.value)}
-                                           maxLength={16}
-                                           placeholder="Inserisci 16 caratteri"
-                                    />
+                                    <Field icon={CreditCard} label="Codice Fiscale" id="nin" name="nin"
+                                           value={formData.nin} onChange={handleChange} isEditing={true} maxLength={16}
+                                           required
+                                           placeholder="Inserisci 16 caratteri"/>
                                     {formData.nin && (
-                                        <div className={`flex items-center gap-2 text-xs font-semibold px-2 transition-all ${
-                                            cfState.status === "valid" ? "text-emerald-600" :
-                                                cfState.status === "warning" ? "text-amber-600" : "text-red-600"
-                                        }`}>
-                                            {cfState.status === "valid" && <CheckCircle className="w-3.5 h-3.5 shrink-0"/>}
-                                            {cfState.status === "warning" && <AlertCircle className="w-3.5 h-3.5 shrink-0"/>}
-                                            {cfState.status === "error" && <ShieldAlert className="w-3.5 h-3.5 shrink-0"/>}
-                                            {cfState.status === "incomplete" && <AlertCircle className="w-3.5 h-3.5 shrink-0"/>}
+                                        <div
+                                            className={`flex items-center gap-2 text-xs font-semibold px-2 transition-all ${
+                                                cfState.status === "valid" ? "text-emerald-600" :
+                                                    cfState.status === "warning" ? "text-amber-600" : "text-red-600"
+                                            }`}>
+                                            {cfState.status === "valid" &&
+                                                <CheckCircle className="w-3.5 h-3.5 shrink-0"/>}
+                                            {cfState.status === "warning" &&
+                                                <AlertCircle className="w-3.5 h-3.5 shrink-0"/>}
+                                            {cfState.status === "error" &&
+                                                <ShieldAlert className="w-3.5 h-3.5 shrink-0"/>}
+                                            {cfState.status === "incomplete" &&
+                                                <AlertCircle className="w-3.5 h-3.5 shrink-0"/>}
                                             <span className="break-words">{cfState.message}</span>
                                         </div>
                                     )}
@@ -320,57 +337,65 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div className="bg-zinc-50/60 p-5 sm:p-6 rounded-2xl border border-zinc-100 space-y-6 flex flex-col justify-between">
+                            <div
+                                className="bg-zinc-50/60 p-5 sm:p-6 rounded-2xl border border-zinc-100 space-y-6 flex flex-col justify-between">
                                 <div className="space-y-5">
                                     <h3 className="text-base font-bold text-zinc-900 border-l-4 border-red-600 pl-3">
                                         Luogo di Nascita
                                     </h3>
                                     <div className="w-full min-w-0">
-                                        <Field icon={MapPin} label="Comune di Nascita *" id="birthPlace" value={formData.birthPlace}
-                                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("birthPlace", e.target.value)}/>
+                                        <Field icon={MapPin} label="Comune di Nascita" id="birthPlace" name="birthPlace"
+                                               value={formData.birthPlace} onChange={handleChange} isEditing={true}
+                                               required/>
                                     </div>
                                     <div className="w-full min-w-0">
-                                        <Field icon={Globe} label="Provincia (Sigla es. MI) *" id="countryBirthPlace"
-                                               value={formData.countryBirthPlace}
-                                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("countryBirthPlace", e.target.value)}
-                                               maxLength={2}/>
+                                        <Field icon={Globe} label="Provincia (sigla)" id="countryBirthPlace"
+                                               name="countryBirthPlace"
+                                               value={formData.countryBirthPlace} onChange={handleChange}
+                                               isEditing={true}
+                                               maxLength={2} required/>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-zinc-50/60 p-5 sm:p-6 rounded-2xl border border-zinc-100 space-y-6 flex flex-col justify-between">
+                            <div
+                                className="bg-zinc-50/60 p-5 sm:p-6 rounded-2xl border border-zinc-100 space-y-6 flex flex-col justify-between">
                                 <div className="space-y-5">
                                     <h3 className="text-base font-bold text-zinc-900 border-l-4 border-red-600 pl-3">
                                         Contatti e Salute
                                     </h3>
                                     <div className="w-full min-w-0">
-                                        <Field icon={MapPin} label="Indirizzo di residenza (Via e Comune) *" id="homeAddress"
-                                               value={formData.homeAddress}
-                                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("homeAddress", e.target.value)}/>
+                                        <Field icon={MapPin} label="Indirizzo di Residenza" id="homeAddress"
+                                               name="homeAddress"
+                                               value={formData.homeAddress} onChange={handleChange} isEditing={true}
+                                               required/>
                                     </div>
 
                                     <div className="space-y-1.5 w-full min-w-0">
-                                        <Label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1.5 pl-0.5">
-                                            <Mail className="h-3.5 w-3.5 text-zinc-400 shrink-0"/>
-                                            Email Genitore / Referente
+                                        <Label
+                                            className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1.5 pl-0.5">
+                                            <Mail className="h-3.5 w-3.5 text-red-600 shrink-0"/>
+                                            <span>Email Genitore / Referente</span>
                                         </Label>
-                                        <div className="bg-white border border-zinc-200 text-zinc-700 px-4 py-3 rounded-xl min-h-[44px] flex items-center font-medium text-sm break-all w-full uppercase">
-                                            {emailUser || "N/D"}
+                                        <div
+                                            className="bg-white border border-zinc-200 text-zinc-700 px-4 py-3 rounded-xl min-h-[44px] flex items-center font-medium text-sm break-all w-full uppercase">
+                                            {emailUser?.toUpperCase() || "N/D"}
                                         </div>
                                     </div>
 
                                     <div className="w-full min-w-0">
-                                        <Field icon={Calendar} label="Scadenza Certificato Medico" id="expirationMedicalCertificate"
-                                               value={formData.expirationMedicalCertificate}
-                                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("expirationMedicalCertificate", e.target.value)}
-                                               type="date"/>
+                                        <Field icon={Calendar} label="Scadenza Certificato Medico"
+                                               id="expirationMedicalCertificate" name="expirationMedicalCertificate"
+                                               value={formData.expirationMedicalCertificate} onChange={handleChange}
+                                               isEditing={true} type="date"/>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {successMessage && (
-                            <div className="flex lg:hidden items-center text-sm font-medium text-emerald-700 bg-emerald-50 px-4 py-3 rounded-xl border border-emerald-200 justify-center">
+                            <div
+                                className="flex lg:hidden items-center text-sm font-medium text-emerald-700 bg-emerald-50 px-4 py-3 rounded-xl border border-emerald-200 justify-center">
                                 <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-500 shrink-0"/> Salvato con successo
                             </div>
                         )}
@@ -379,11 +404,13 @@ export const AthleteCreate = ({idUser, emailUser, onCreated, setIdAthlete}: Athl
                             <Button
                                 onClick={handleSave}
                                 disabled={!isFormValid || createAthleteMutation.isPending}
-                                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold h-13 rounded-2xl shadow-lg disabled:opacity-60 text-xs uppercase tracking-wider cursor-pointer transition-all"
+                                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold h-12 rounded-xl shadow-md disabled:opacity-60 text-xs uppercase tracking-wider cursor-pointer transition-all"
                             >
-                                {createAthleteMutation.isPending ?
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/> :
-                                    <UserPlus className="mr-2 h-4 w-4"/>}
+                                {createAthleteMutation.isPending ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                                ) : (
+                                    <UserPlus className="mr-2 h-4 w-4"/>
+                                )}
                                 Registra Atleta
                             </Button>
                         </div>

@@ -1,7 +1,7 @@
 import {createTRPCRouter, userProcedure} from "@/server/api/trpc";
 import {z} from "zod";
 import {TRPCError} from "@trpc/server";
-import {Associate, Athlete, Team, IsIn, SportSeason, User} from "@/db/schema";
+import {Associate, Athlete, Team, IsIn, SportSeason, User, Notification} from "@/db/schema";
 import {and, eq, notInArray, inArray} from "drizzle-orm";
 
 export const UserProcedure = createTRPCRouter({
@@ -486,13 +486,38 @@ export const UserProcedure = createTRPCRouter({
                     )
                     .returning({id: Athlete.id});
 
+                await ctx.db.insert(Notification)
+                    .values(
+                        {
+                            id: crypto.randomUUID(),
+                            dateCreation: new Date().toISOString(),
+                            dateExpiration: input.expiredCI,
+                            text: "Scadenza carta di identità",
+                            idAthlete: insertedAthletes[0].id
+                        }
+                    );
+
+                if (input.expirationMedicalCertificate && input.expirationMedicalCertificate.trim() !== "") {
+                    await ctx.db.insert(Notification)
+                        .values(
+                            {
+                                id: crypto.randomUUID(),
+                                dateCreation: new Date().toISOString(),
+                                dateExpiration: input.expirationMedicalCertificate,
+                                text: "Scadenza certificato medico",
+                                idAthlete: insertedAthletes[0].id
+                            }
+                        );
+                }
+
                 await ctx.db.insert(Associate)
                     .values(
                         {
                             userId: input.idUser,
                             athleteId: insertedAthletes[0].id
                         }
-                    )
+                    );
+
                 return {success: true, id: insertedAthletes[0].id};
 
             } catch (error) {
