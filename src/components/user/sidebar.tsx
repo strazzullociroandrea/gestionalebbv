@@ -12,6 +12,7 @@ import {
     SidebarMenuItem,
     SidebarMenuSub,
     SidebarMenuSubItem,
+    useSidebar
 } from "@/components/ui/sidebar";
 import {
     User,
@@ -54,6 +55,8 @@ export const SidebarUser = ({role}: { role: string }) => {
     const pathname = usePathname();
     const [open, setOpen] = useState(pathname.startsWith("/athletes"));
 
+    const {isMobile, setOpenMobile} = useSidebar();
+
     const {data: athletes = []} = api.user.getAllAthletes.useQuery(
         {idUser: session?.user?.id ?? ""},
         {enabled: !!session?.user?.id}
@@ -68,6 +71,12 @@ export const SidebarUser = ({role}: { role: string }) => {
         router.push("/authenticate");
     };
 
+    const handleLinkClick = () => {
+        if (isMobile) {
+            setOpenMobile(false);
+        }
+    };
+
     const isAthletesActive = pathname.startsWith("/athletes");
 
     return (
@@ -80,7 +89,7 @@ export const SidebarUser = ({role}: { role: string }) => {
                     </div>
                     <div className="min-w-0 group-data-[collapsible=icon]:hidden">
                         <h1 className="text-sm font-black uppercase tracking-wider text-black truncate">
-                            BBV <span className="text-red-600">Gestionale</span>
+                            Bulls<span className="text-red-600">Desk</span>
                         </h1>
                         <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">Area
                             Utente</p>
@@ -100,7 +109,7 @@ export const SidebarUser = ({role}: { role: string }) => {
                                 "w-full rounded-xl transition-all font-bold",
                                 pathname === "/" ? "bg-red-50 text-red-700 shadow-2xs border border-red-100" : "text-zinc-700 hover:bg-zinc-100 hover:text-black"
                             )}>
-                                <Link href="/" className="flex items-center gap-3 w-full">
+                                <Link href="/" onClick={handleLinkClick} className="flex items-center gap-3 w-full">
                                     <Home className="size-4 text-red-600 shrink-0"/>
                                     <span className="truncate group-data-[collapsible=icon]:hidden">Home</span>
                                 </Link>
@@ -141,17 +150,18 @@ export const SidebarUser = ({role}: { role: string }) => {
                                             const isAthleteActive = pathname === `/athletes/${athlete.id}`;
                                             return (
                                                 <SidebarMenuSubItem key={athlete.id}>
-                                                    <Link href={`/athletes/${athlete.id}`} className={cn(
-                                                        "block w-full px-3 py-2 text-xs font-semibold rounded-lg transition-colors truncate",
-                                                        isAthleteActive ? "bg-red-50 text-red-700 font-bold" : "text-zinc-600 hover:text-black hover:bg-zinc-50"
-                                                    )}>
+                                                    <Link href={`/athletes/${athlete.id}`} onClick={handleLinkClick}
+                                                          className={cn(
+                                                              "block w-full px-3 py-2 text-xs font-semibold rounded-lg transition-colors truncate",
+                                                              isAthleteActive ? "bg-red-50 text-red-700 font-bold" : "text-zinc-600 hover:text-black hover:bg-zinc-50"
+                                                          )}>
                                                         {athlete.name} {athlete.surname}
                                                     </Link>
                                                 </SidebarMenuSubItem>
                                             );
                                         })}
                                         <SidebarMenuSubItem>
-                                            <Link href="/athletes/add" className={cn(
+                                            <Link href="/athletes/add" onClick={handleLinkClick} className={cn(
                                                 "flex items-center gap-2 px-3 py-2 text-xs font-black rounded-lg uppercase tracking-wider transition-colors truncate",
                                                 pathname === "/athletes/add" ? "bg-red-50 text-red-700" : "text-red-600 hover:bg-red-50"
                                             )}>
@@ -168,7 +178,8 @@ export const SidebarUser = ({role}: { role: string }) => {
                                 "w-full rounded-xl transition-all font-bold",
                                 pathname === "/anagraphic" ? "bg-red-50 text-red-700 shadow-2xs border border-red-100" : "text-zinc-700 hover:bg-zinc-100 hover:text-black"
                             )}>
-                                <Link href="/anagraphic" className="flex items-center gap-3 w-full">
+                                <Link href="/anagraphic" onClick={handleLinkClick}
+                                      className="flex items-center gap-3 w-full">
                                     <User className="size-4 text-red-600 shrink-0"/>
                                     <span
                                         className="truncate group-data-[collapsible=icon]:hidden">Profilo Personale</span>
